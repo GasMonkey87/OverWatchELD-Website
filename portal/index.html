@@ -146,7 +146,7 @@
       </section>
     </section>
 
-    <div id="profileModal" class="modal-backdrop" hidden>
+    <div id="profileModal" class="modal-backdrop" hidden style="display:none;">
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
         <button id="closeProfileBtn" class="modal-close" type="button" aria-label="Close profile">×</button>
         <div class="kicker">Driver Profile</div>
@@ -173,6 +173,10 @@
   const guildId = localStorage.getItem('oweld_guild_id') || '';
   const loading = document.getElementById('portalLoading');
   const content = document.getElementById('portalContent');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfileBtn = document.getElementById('closeProfileBtn');
+
+  forceCloseProfile();
 
   if (!token) {
     window.location.replace('../login/?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search));
@@ -185,6 +189,14 @@
     localStorage.removeItem('oweld_session_token');
     localStorage.removeItem('oweld_guild_id');
     window.location.href = '../login/?returnUrl=' + encodeURIComponent('/portal/');
+  });
+
+  closeProfileBtn.addEventListener('click', forceCloseProfile);
+  profileModal.addEventListener('click', function (e) {
+    if (e.target === profileModal) forceCloseProfile();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') forceCloseProfile();
   });
 
   async function apiGet(path) {
@@ -220,6 +232,8 @@
   }
 
   async function loadPortal() {
+    forceCloseProfile();
+
     let data;
     try {
       const suffix = guildId ? ('?guildId=' + encodeURIComponent(guildId)) : '';
@@ -258,6 +272,7 @@
     renderRoster(roster);
     setupAboutEditor(vtc, data.guildId || guildId);
 
+    forceCloseProfile();
     loading.hidden = true;
     content.hidden = false;
   }
@@ -354,56 +369,29 @@
     renderRoster(currentRoster.filter(m => JSON.stringify(m).toLowerCase().includes(q)));
   });
 
-  const profileModal = document.getElementById('profileModal');
-const closeProfileBtn = document.getElementById('closeProfileBtn');
-
-function closeProfile() {
+  function forceCloseProfile() {
     profileModal.hidden = true;
     profileModal.style.display = 'none';
-}
+    document.body.style.overflow = '';
+  }
 
-function openProfile(member) {
-    document.getElementById('profileTitle').textContent =
-        member.userName ||
-        member.username ||
-        member.driverName ||
-        member.name ||
-        'Driver';
-
-    const awards =
-        Array.isArray(member.awards)
-            ? (member.awards.join(', ') || 'None')
-            : (member.awards || 'None');
-
+  function openProfile(member) {
+    document.getElementById('profileTitle').textContent = member.userName || member.username || member.driverName || member.name || 'Driver';
+    const awards = Array.isArray(member.awards) ? (member.awards.join(', ') || 'None') : (member.awards || 'None');
     document.getElementById('profileContent').innerHTML =
-        profileItem('Role', member.role || 'Driver') +
-        profileItem('Current Truck', member.currentTruck || member.truck || member.assignedTruck || 'Unassigned') +
-        profileItem('Total Mileage', formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0)) +
-        profileItem('Status', member.status || member.dutyStatus || 'Offline') +
-        profileItem('Awards', awards) +
-        profileItem('Last Known Location', member.location || member.cityState || 'Unknown') +
-        profileItem('Driver Score', member.driverScore || member.score || 'N/A') +
-        profileItem('Joined', member.joined || member.joinedAt || 'N/A');
+      profileItem('Role', member.role || 'Driver') +
+      profileItem('Current Truck', member.currentTruck || member.truck || member.assignedTruck || 'Unassigned') +
+      profileItem('Total Mileage', formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0)) +
+      profileItem('Status', member.status || member.dutyStatus || 'Offline') +
+      profileItem('Awards', awards) +
+      profileItem('Last Known Location', member.location || member.cityState || 'Unknown') +
+      profileItem('Driver Score', member.driverScore || member.score || 'N/A') +
+      profileItem('Joined', member.joined || member.joinedAt || 'N/A');
 
     profileModal.hidden = false;
     profileModal.style.display = 'grid';
-}
-
-closeProfile();
-
-closeProfileBtn.addEventListener('click', closeProfile);
-
-profileModal.addEventListener('click', function (e) {
-    if (e.target === profileModal) {
-        closeProfile();
-    }
-});
-
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        closeProfile();
-    }
-});
+    document.body.style.overflow = 'hidden';
+  }
 
   function setupAboutEditor(vtc, resolvedGuildId) {
     const canEdit = ['owner', 'admin', 'manager'].includes(String(vtc.myRole || '').toLowerCase()) || vtc.canEditPortal === true;
