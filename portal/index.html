@@ -24,19 +24,6 @@
   </header>
 
   <main id="portalApp" class="portal-shell" data-api-base="https://api.overwatcheld.com">
-    <section id="portalLocked" class="wrap portal-locked" hidden>
-      <div class="panel portal-lock-card">
-        <div class="kicker">Member Access Required</div>
-        <h1>Sign in to open your VTC portal.</h1>
-        <p class="lead">This portal is only visible after a successful Discord or email/password login. Once signed in, members are shown the VTC they are registered with.</p>
-        <div class="actions">
-          <a id="portalLoginLink" class="btn" href="../login/?returnUrl=../portal/">Sign In</a>
-          <a class="btn secondary" href="../">Back Home</a>
-        </div>
-        <p class="portal-help">ELD desktop clients should open this page with a valid session token or after the user has already signed in on the website.</p>
-      </div>
-    </section>
-
     <section id="portalLoading" class="wrap">
       <div class="panel">
         <div class="kicker">Loading Portal</div>
@@ -51,17 +38,19 @@
           <div>
             <div class="kicker">VTC Member Portal</div>
             <h1 id="vtcName">Your VTC</h1>
-            <p id="vtcDescription" class="lead">Company information will appear here after your VTC owner or admin adds a portal description.</p>
+            <p id="vtcDescription" class="lead">Welcome to your OverWatch ELD company portal.</p>
             <div class="actions">
               <a class="btn" href="#rosterSection">View Roster</a>
               <a class="btn secondary" href="../live-map/">Open Live Map</a>
+              <button id="logoutPortalBtn" class="btn secondary" type="button">Logout</button>
             </div>
           </div>
           <div class="panel">
             <h3>VTC Snapshot</h3>
             <div class="status-row"><span><span class="dot"></span>Portal</span><strong>Online</strong></div>
             <div class="status-row"><span>Members</span><strong id="memberCount">0</strong></div>
-            <div class="status-row"><span>Active Drivers</span><strong id="activeDriverCount">0</strong></div>
+            <div class="status-row"><span>Fleet Trucks</span><strong id="truckCount">0</strong></div>
+            <div class="status-row"><span>Garages</span><strong id="garageCount">0</strong></div>
             <div class="status-row"><span>Your Role</span><strong id="myRole">Driver</strong></div>
           </div>
         </div>
@@ -93,31 +82,66 @@
         </div>
       </section>
 
-      <section id="rosterSection" class="section-alt">
+      <section class="section-alt">
         <div class="wrap">
           <div class="section-title-row">
             <div>
-              <div class="kicker">Roster</div>
-              <h2>VTC Roster</h2>
-              <p class="lead">Double click a roster member to view their driver profile, truck, mileage, awards, and other fleet details.</p>
+              <div class="kicker">Company Board</div>
+              <h2>Latest VTC Info</h2>
+              <p class="lead">Announcements, company notes, and quick setup guidance.</p>
             </div>
-            <input id="rosterSearch" class="input roster-search" type="search" placeholder="Search drivers, trucks, roles...">
           </div>
-          <div class="table-wrap">
-            <table class="table portal-table">
-              <thead>
-                <tr>
-                  <th>Driver</th>
-                  <th>Role</th>
-                  <th>Current Truck</th>
-                  <th>Total Mileage</th>
-                  <th>Status</th>
-                  <th>Awards</th>
-                </tr>
-              </thead>
-              <tbody id="rosterBody"></tbody>
-            </table>
+          <div id="latestGrid" class="portal-card-grid"></div>
+        </div>
+      </section>
+
+      <section class="wrap">
+        <div class="section-title-row">
+          <div>
+            <div class="kicker">Fleet</div>
+            <h2>Fleet Trucks</h2>
+            <p class="lead">Approved trucks assigned to this VTC.</p>
           </div>
+        </div>
+        <div id="fleetGrid" class="portal-card-grid"></div>
+      </section>
+
+      <section class="section-alt">
+        <div class="wrap">
+          <div class="section-title-row">
+            <div>
+              <div class="kicker">Garages</div>
+              <h2>Company Garages</h2>
+              <p class="lead">Owned and available garage locations for the VTC.</p>
+            </div>
+          </div>
+          <div id="garageGrid" class="portal-card-grid"></div>
+        </div>
+      </section>
+
+      <section id="rosterSection" class="wrap">
+        <div class="section-title-row">
+          <div>
+            <div class="kicker">Roster</div>
+            <h2>VTC Roster</h2>
+            <p class="lead">Double click a roster member to view their driver profile, truck, mileage, awards, and other fleet details.</p>
+          </div>
+          <input id="rosterSearch" class="input roster-search" type="search" placeholder="Search drivers, trucks, roles...">
+        </div>
+        <div class="table-wrap">
+          <table class="table portal-table">
+            <thead>
+              <tr>
+                <th>Driver</th>
+                <th>Role</th>
+                <th>Current Truck</th>
+                <th>Total Mileage</th>
+                <th>Status</th>
+                <th>Awards</th>
+              </tr>
+            </thead>
+            <tbody id="rosterBody"></tbody>
+          </table>
         </div>
       </section>
     </section>
@@ -147,36 +171,21 @@
 
   const token = localStorage.getItem('oweld_session_token') || '';
   const guildId = localStorage.getItem('oweld_guild_id') || '';
-
-  const locked = document.getElementById('portalLocked');
   const loading = document.getElementById('portalLoading');
   const content = document.getElementById('portalContent');
-  const loginLink = document.getElementById('portalLoginLink');
-
-  const portalReturnUrl = window.location.pathname + window.location.search;
-  loginLink.href = '../login/?returnUrl=' + encodeURIComponent(portalReturnUrl);
 
   if (!token) {
-    window.location.replace('../login/?returnUrl=' + encodeURIComponent(portalReturnUrl));
+    window.location.replace('../login/?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search));
     return;
   }
 
-  const fallbackPortal = {
-    vtc: {
-      guildId: guildId,
-      name: 'Registered VTC',
-      description: 'Add your VTC description from the owner/admin portal settings.',
-      about: 'This page is ready for your VTC information. Owners and admins can update the about section after portal APIs are connected.',
-      myRole: 'Driver'
-    },
-    roles: [
-      { role: 'Owner', userName: 'Not assigned' },
-      { role: 'Manager', userName: 'Not assigned' },
-      { role: 'Dispatch', userName: 'Not assigned' },
-      { role: 'Mechanic', userName: 'Not assigned' }
-    ],
-    roster: []
-  };
+  let currentRoster = [];
+
+  document.getElementById('logoutPortalBtn').addEventListener('click', function () {
+    localStorage.removeItem('oweld_session_token');
+    localStorage.removeItem('oweld_guild_id');
+    window.location.href = '../login/?returnUrl=' + encodeURIComponent('/portal/');
+  });
 
   async function apiGet(path) {
     const res = await fetch(apiBase + path, {
@@ -186,6 +195,12 @@
         'X-OverWatch-Session': token
       }
     });
+    if (res.status === 401) {
+      localStorage.removeItem('oweld_session_token');
+      localStorage.removeItem('oweld_guild_id');
+      window.location.replace('../login/?returnUrl=' + encodeURIComponent('/portal/'));
+      throw new Error('Not authenticated');
+    }
     if (!res.ok) throw new Error('Request failed: ' + res.status);
     return await res.json();
   }
@@ -205,28 +220,43 @@
   }
 
   async function loadPortal() {
-    let data = fallbackPortal;
+    let data;
     try {
       const suffix = guildId ? ('?guildId=' + encodeURIComponent(guildId)) : '';
       data = await apiGet('/api/portal/me' + suffix);
     } catch (err) {
-      console.warn('Portal API unavailable, using safe fallback.', err);
+      showFatal('Unable to load your VTC portal yet.', 'The backend did not return portal data. Make sure the bot is deployed and the Discord user is in a server where the OverWatch ELD bot is installed.');
+      return;
     }
 
-    const vtc = data.vtc || fallbackPortal.vtc;
-    const roles = data.roles || fallbackPortal.roles;
-    const roster = data.roster || [];
+    if (!data || data.ok === false) {
+      showFatal('No VTC found for this login.', 'Join or link a Discord server that has the OverWatch ELD bot installed, then sign in again.');
+      return;
+    }
 
-    document.getElementById('vtcName').textContent = vtc.name || 'Registered VTC';
-    document.getElementById('vtcDescription').textContent = vtc.description || fallbackPortal.vtc.description;
-    document.getElementById('aboutText').textContent = vtc.about || vtc.description || fallbackPortal.vtc.about;
+    const vtc = data.vtc || {};
+    const roles = data.roles || [];
+    const roster = data.roster || [];
+    const latest = data.latest || data.latestInfo || [];
+    const fleet = data.fleet || data.trucks || [];
+    const garages = data.garages || [];
+
+    if (data.guildId) localStorage.setItem('oweld_guild_id', data.guildId);
+
+    document.getElementById('vtcName').textContent = vtc.name || data.vtcName || 'Registered VTC';
+    document.getElementById('vtcDescription').textContent = vtc.description || 'Welcome to your OverWatch ELD company portal.';
+    document.getElementById('aboutText').textContent = vtc.about || vtc.description || 'Owners and admins can write a brief company description here.';
     document.getElementById('myRole').textContent = vtc.myRole || 'Driver';
     document.getElementById('memberCount').textContent = roster.length.toString();
-    document.getElementById('activeDriverCount').textContent = roster.filter(x => String(x.status || '').toLowerCase() === 'online' || String(x.dutyStatus || '').toLowerCase() === 'driving').length.toString();
+    document.getElementById('truckCount').textContent = fleet.length.toString();
+    document.getElementById('garageCount').textContent = garages.length.toString();
 
     renderRoles(roles);
+    renderLatest(latest, vtc);
+    renderFleet(fleet);
+    renderGarages(garages);
     renderRoster(roster);
-    setupAboutEditor(vtc);
+    setupAboutEditor(vtc, data.guildId || guildId);
 
     loading.hidden = true;
     content.hidden = false;
@@ -235,7 +265,13 @@
   function renderRoles(roles) {
     const grid = document.getElementById('rolesGrid');
     grid.innerHTML = '';
-    roles.forEach(item => {
+    const rows = roles.length ? roles : [
+      { role: 'Owner', userName: 'Not assigned' },
+      { role: 'Manager', userName: 'Not assigned' },
+      { role: 'Dispatch', userName: 'Not assigned' },
+      { role: 'Mechanic', userName: 'Not assigned' }
+    ];
+    rows.forEach(item => {
       const row = document.createElement('div');
       row.className = 'role-row';
       row.innerHTML = '<span>' + escapeHtml(item.role || 'Role') + '</span><strong>' + escapeHtml(item.userName || item.username || 'Not assigned') + '</strong>';
@@ -243,7 +279,48 @@
     });
   }
 
-  let currentRoster = [];
+  function renderLatest(items, vtc) {
+    const grid = document.getElementById('latestGrid');
+    grid.innerHTML = '';
+    const rows = items.length ? items : [
+      { title: 'Welcome', body: vtc.about || vtc.description || 'Your VTC portal is active. Admins can update the company info and announcements from portal settings.', meta: 'Portal Ready' },
+      { title: 'Setup Reminder', body: 'Add portal drivers, fleet trucks, roles, garages, and announcements to make this page fully populated.', meta: 'Admin Setup' },
+      { title: 'Driver Tools', body: 'Use the ELD client for live map tracking, load paperwork, inspections, logs, maintenance, and Discord alerts.', meta: 'OverWatch ELD' }
+    ];
+    rows.slice(0, 6).forEach(item => grid.appendChild(card(item.title || 'Info', item.body || item.message || '', item.meta || item.createdUtc || '')));
+  }
+
+  function renderFleet(items) {
+    const grid = document.getElementById('fleetGrid');
+    grid.innerHTML = '';
+    if (!items.length) {
+      grid.appendChild(card('No fleet trucks yet', 'Approved trucks will show here after they are added in Fleet Analytics or the VTC admin tools.', 'Fleet Setup'));
+      return;
+    }
+    items.slice(0, 12).forEach(t => {
+      grid.appendChild(card(
+        '#' + escapeText(t.truckNumber || t.TruckNumber || '') + ' ' + escapeText(t.name || t.Name || t.model || t.Model || 'Truck'),
+        'Driver: ' + escapeText(t.driver || t.Driver || 'Unassigned') + '<br>Plate: ' + escapeText(t.plate || t.Plate || 'N/A') + '<br>Location: ' + escapeText(t.location || t.Location || 'Unknown'),
+        t.status || t.Status || 'Fleet Truck'
+      ));
+    });
+  }
+
+  function renderGarages(items) {
+    const grid = document.getElementById('garageGrid');
+    grid.innerHTML = '';
+    if (!items.length) {
+      grid.appendChild(card('No garages saved yet', 'Purchased or configured company garages will show here.', 'Garage Setup'));
+      return;
+    }
+    items.slice(0, 12).forEach(g => {
+      grid.appendChild(card(
+        g.cityName || g.city || g.CityName || g.City || 'Garage',
+        'State: ' + escapeText(g.state || g.State || 'N/A') + '<br>Size: ' + escapeText(g.size || g.Size || 'Small') + '<br>Slots: ' + escapeText(g.slots || g.Slots || g.truckCapacity || '0'),
+        (g.isOwned || g.IsOwned) ? 'Owned' : 'Available'
+      ));
+    });
+  }
 
   function renderRoster(roster) {
     currentRoster = roster;
@@ -251,7 +328,7 @@
     body.innerHTML = '';
 
     if (!roster.length) {
-      body.innerHTML = '<tr><td colspan="6">No roster members loaded yet. Connect /api/portal/me to your VTC roster data.</td></tr>';
+      body.innerHTML = '<tr><td colspan="6">No roster members found yet. Once Discord roster sync or portal drivers are added, they will appear here.</td></tr>';
       return;
     }
 
@@ -259,12 +336,12 @@
       const tr = document.createElement('tr');
       tr.tabIndex = 0;
       tr.dataset.index = index;
-      tr.innerHTML = '<td><strong>' + escapeHtml(member.userName || member.username || member.driverName || 'Driver') + '</strong></td>' +
+      tr.innerHTML = '<td><strong>' + escapeHtml(member.userName || member.username || member.driverName || member.name || 'Driver') + '</strong></td>' +
         '<td>' + escapeHtml(member.role || 'Driver') + '</td>' +
-        '<td>' + escapeHtml(member.currentTruck || member.truck || 'Unassigned') + '</td>' +
+        '<td>' + escapeHtml(member.currentTruck || member.truck || member.assignedTruck || 'Unassigned') + '</td>' +
         '<td>' + formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0) + '</td>' +
         '<td><span class="badge">' + escapeHtml(member.status || member.dutyStatus || 'Offline') + '</span></td>' +
-        '<td>' + escapeHtml((member.awards || []).join(', ') || 'None') + '</td>';
+        '<td>' + escapeHtml(Array.isArray(member.awards) ? (member.awards.join(', ') || 'None') : (member.awards || 'None')) + '</td>';
       tr.addEventListener('dblclick', () => openProfile(member));
       tr.addEventListener('keydown', e => { if (e.key === 'Enter') openProfile(member); });
       body.appendChild(tr);
@@ -278,11 +355,11 @@
   });
 
   function openProfile(member) {
-    document.getElementById('profileTitle').textContent = member.userName || member.username || member.driverName || 'Driver';
-    const awards = member.awards && member.awards.length ? member.awards.join(', ') : 'None';
+    document.getElementById('profileTitle').textContent = member.userName || member.username || member.driverName || member.name || 'Driver';
+    const awards = Array.isArray(member.awards) ? (member.awards.join(', ') || 'None') : (member.awards || 'None');
     document.getElementById('profileContent').innerHTML =
       profileItem('Role', member.role || 'Driver') +
-      profileItem('Current Truck', member.currentTruck || member.truck || 'Unassigned') +
+      profileItem('Current Truck', member.currentTruck || member.truck || member.assignedTruck || 'Unassigned') +
       profileItem('Total Mileage', formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0)) +
       profileItem('Status', member.status || member.dutyStatus || 'Offline') +
       profileItem('Awards', awards) +
@@ -295,7 +372,7 @@
   document.getElementById('closeProfileBtn').addEventListener('click', () => document.getElementById('profileModal').hidden = true);
   document.getElementById('profileModal').addEventListener('click', e => { if (e.target.id === 'profileModal') e.currentTarget.hidden = true; });
 
-  function setupAboutEditor(vtc) {
+  function setupAboutEditor(vtc, resolvedGuildId) {
     const canEdit = ['owner', 'admin', 'manager'].includes(String(vtc.myRole || '').toLowerCase()) || vtc.canEditPortal === true;
     const editBtn = document.getElementById('editAboutBtn');
     const editor = document.getElementById('aboutEditor');
@@ -309,7 +386,7 @@
       const about = textarea.value.trim();
       document.getElementById('aboutText').textContent = about || 'Owners and admins can write a brief company description here.';
       try {
-        await apiPost('/api/portal/about', { guildId: vtc.guildId || guildId, about });
+        await apiPost('/api/portal/about', { guildId: resolvedGuildId, about });
       } catch (err) {
         console.warn('About save endpoint unavailable.', err);
       }
@@ -318,15 +395,28 @@
     };
   }
 
+  function card(title, body, meta) {
+    const div = document.createElement('div');
+    div.className = 'card portal-info-card';
+    div.innerHTML = '<div class="kicker">' + escapeHtml(meta || 'Info') + '</div><h3>' + escapeHtml(title || 'Untitled') + '</h3><p>' + (body || '') + '</p>';
+    return div;
+  }
+
+  function showFatal(title, message) {
+    loading.innerHTML = '<div class="panel"><div class="kicker">Portal Error</div><h1>' + escapeHtml(title) + '</h1><p class="lead">' + escapeHtml(message) + '</p><div class="actions"><a class="btn" href="../login/?returnUrl=/portal/">Login Again</a></div></div>';
+  }
+
   function profileItem(label, value) {
     return '<div class="profile-item"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value)) + '</strong></div>';
   }
 
   function formatMiles(value) {
-    const n = Number(value || 0);
+    const raw = String(value || '0').replace(/[^0-9.]/g, '');
+    const n = Number(raw || 0);
     return n.toLocaleString() + ' mi';
   }
 
+  function escapeText(value) { return escapeHtml(String(value || '')); }
   function escapeHtml(value) {
     return String(value || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\'': '&#39;', '"': '&quot;' }[c]));
   }
