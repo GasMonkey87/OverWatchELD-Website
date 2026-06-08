@@ -23,7 +23,7 @@
     </nav>
   </header>
 
-  <main id="portalApp" class="portal-shell" data-api-base="https://overwatcheld.up.railway.app">
+  <main id="portalApp" class="portal-shell" data-api-base="https://api.overwatcheld.com">
     <section id="portalLocked" class="wrap portal-locked" hidden>
       <div class="panel portal-lock-card">
         <div class="kicker">Member Access Required</div>
@@ -137,7 +137,7 @@
 <script>
 (function () {
   const app = document.getElementById('portalApp');
-  const apiBase = app.dataset.apiBase || 'https://overwatcheld.up.railway.app';
+  const apiBase = app.dataset.apiBase || 'https://api.overwatcheld.com';
   const params = new URLSearchParams(window.location.search);
   const incomingToken = params.get('token') || params.get('session') || params.get('access_token');
   const incomingGuildId = params.get('guildId') || params.get('vtcId');
@@ -153,11 +153,11 @@
   const content = document.getElementById('portalContent');
   const loginLink = document.getElementById('portalLoginLink');
 
-  loginLink.href = '../login/?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);
+  const portalReturnUrl = window.location.pathname + window.location.search;
+  loginLink.href = '../login/?returnUrl=' + encodeURIComponent(portalReturnUrl);
 
   if (!token) {
-    loading.hidden = true;
-    locked.hidden = false;
+    window.location.replace('../login/?returnUrl=' + encodeURIComponent(portalReturnUrl));
     return;
   }
 
