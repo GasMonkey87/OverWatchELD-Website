@@ -8,7 +8,7 @@
 </head>
 <body>
 <header class="header"><nav class="nav"><a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a><div class="nav-links"><a href="../features/">Features</a><a href="../downloads/">Downloads</a><a href="../live-map/">Live Map</a><a href="../dashboard/">Dashboard</a><a href="../maintenance/">Maintenance</a><a href="../support/">Support</a></div></nav></header>
-<main><section class="wrap"><div class="kicker">Downloads</div><h1 id="title">OverWatch ELD</h1><p class="lead" id="summary">Checking GitHub for Windows launcher files...</p><div class="grid two"><div class="panel"><h3>Latest Windows Launcher</h3><p id="assetText">The main button uses the newest attached .exe file.</p><div class="actions"><a id="downloadBtn" class="btn" href="https://github.com/GasMonkey87/overwatcheld-website/releases">View Releases</a><a class="btn secondary" href="https://github.com/GasMonkey87/overwatcheld-website/releases">All Releases</a></div><div id="assetList" class="stack" style="margin-top:16px"></div></div><div class="panel"><h3>Required Release Asset</h3><table class="table"><tr><th>Needed</th><th>Example</th></tr><tr><td>Standalone launcher</td><td>OverWatchELD.exe</td></tr><tr><td>Installer</td><td>OverWatchELD-Setup.exe</td></tr></table></div></div><div class="notice" id="notice">Publish the actual .exe under GitHub release Assets.</div></section></main>
+<main><section class="wrap"><div class="kicker">Downloads</div><h1 id="title">OverWatch ELD</h1><p class="lead" id="summary">Checking GitHub for the newest Windows launcher...</p><div class="grid two"><div class="panel"><h3>Latest Windows EXE</h3><p id="assetText">This button scans your GitHub releases and uses the newest attached .exe file.</p><div class="actions"><a id="downloadBtn" class="btn" href="https://github.com/GasMonkey87/overwatcheld-website/releases">View Releases</a><a class="btn secondary" href="https://github.com/GasMonkey87/overwatcheld-website/releases">All Releases</a></div></div><div class="panel"><h3>Required Release Asset</h3><table class="table"><tr><th>Needed</th><th>Example</th></tr><tr><td>Standalone launcher</td><td>OverWatchELD.exe</td></tr><tr><td>Installer</td><td>OverWatchELD-Setup.exe</td></tr></table></div></div><div class="notice" id="notice">Publish the actual .exe under GitHub release Assets.</div></section></main>
 <footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
 <script>
 (async function(){
@@ -19,51 +19,48 @@
   const assetText=document.getElementById('assetText');
   const button=document.getElementById('downloadBtn');
   const notice=document.getElementById('notice');
-  const assetList=document.getElementById('assetList');
-  function addAssetButton(asset){
-    const a=document.createElement('a');
-    a.className='btn secondary';
-    a.href=asset.browser_download_url;
-    a.textContent=asset.name;
-    assetList.appendChild(a);
-  }
   try{
-    const res=await fetch('https://api.github.com/repos/'+repo+'/releases?per_page=20',{headers:{'Accept':'application/vnd.github+json'}});
+    const res=await fetch('https://api.github.com/repos/'+repo+'/releases?per_page=30',{headers:{'Accept':'application/vnd.github+json'}});
     if(!res.ok) throw new Error('release list unavailable');
     const releases=await res.json();
     const publicReleases=(Array.isArray(releases)?releases:[]).filter(r=>!r.draft);
-    const allAssets=[];
-    publicReleases.forEach(r=>{
-      (Array.isArray(r.assets)?r.assets:[]).forEach(a=>{
-        allAssets.push({release:r,asset:a});
-      });
-    });
-    const exeItems=allAssets.filter(x=>/\.exe(\?|$)/i.test(x.asset.name));
-    const preferred=exeItems.find(x=>/setup|installer|overwatcheld/i.test(x.asset.name))||exeItems[0];
-    const newest=publicReleases[0]||null;
+    let pickedRelease=null;
+    let pickedExe=null;
+    for(const release of publicReleases){
+      const assets=Array.isArray(release.assets)?release.assets:[];
+      const exe=assets.find(a=>/\.exe$/i.test(a.name));
+      if(exe && exe.browser_download_url){
+        pickedRelease=release;
+        pickedExe=exe;
+        break;
+      }
+    }
+    if(pickedRelease && pickedExe){
+      title.textContent='OverWatch ELD '+(pickedRelease.tag_name||'Latest');
+      summary.textContent=pickedRelease.name || 'Newest release with Windows EXE';
+      button.href=pickedExe.browser_download_url;
+      button.textContent='Download '+pickedExe.name;
+      assetText.textContent='Auto-detected Windows launcher: '+pickedExe.name;
+      notice.textContent='This button automatically follows the newest release that has a .exe asset.';
+      return;
+    }
+    const newest=publicReleases[0];
     if(newest){
       title.textContent='OverWatch ELD '+(newest.tag_name||'Latest');
       summary.textContent=newest.name || 'Newest public release';
-    }
-    if(preferred && preferred.asset.browser_download_url){
-      button.href=preferred.asset.browser_download_url;
-      button.textContent='Download '+preferred.asset.name;
-      assetText.textContent='Auto-detected Windows launcher from '+(preferred.release.tag_name||'latest release')+': '+preferred.asset.name;
-      notice.textContent='This button automatically follows the newest attached .exe asset.';
-      exeItems.slice(0,6).forEach(x=>addAssetButton(x.asset));
-    }else if(newest){
       button.href=newest.html_url || releasesUrl;
       button.textContent='Open '+(newest.tag_name||'Release');
-      assetText.textContent='No attached .exe file was found in the public releases.';
-      notice.textContent='Attach the standalone launcher .exe under release Assets.';
+      const names=(Array.isArray(newest.assets)?newest.assets:[]).map(a=>a.name).join(', ');
+      assetText.textContent=names ? 'Assets found, but no .exe: '+names : 'No assets found on newest release.';
+      notice.textContent='Attach an .exe file under release Assets for direct download.';
     }else{
-      throw new Error('no releases');
+      throw new Error('no public releases');
     }
   }catch(e){
     button.href=releasesUrl;
     button.textContent='View Releases';
     summary.textContent='Could not read GitHub release data.';
-    assetText.textContent='Open the releases page and choose the newest Windows .exe asset manually.';
+    assetText.textContent='Open the releases page and check the newest release manually.';
     notice.textContent='The page will auto-update once GitHub release data is available.';
   }
 })();
