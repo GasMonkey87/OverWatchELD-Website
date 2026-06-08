@@ -8,7 +8,7 @@
 </head>
 <body>
 <header class="header"><nav class="nav"><a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a><div class="nav-links"><a href="../features/">Features</a><a href="../downloads/">Downloads</a><a href="../live-map/">Live Map</a><a href="../dashboard/">Dashboard</a><a href="../maintenance/">Maintenance</a><a href="../support/">Support</a></div></nav></header>
-<main><section class="wrap"><div class="kicker">Downloads</div><h1 id="title">OverWatch ELD</h1><p class="lead" id="summary">Checking GitHub for the newest release...</p><div class="grid two"><div class="panel"><h3>Latest Windows Client</h3><p id="assetText">The download button updates automatically when a new release is published with an attached file.</p><div class="actions"><a id="downloadBtn" class="btn" href="https://github.com/GasMonkey87/overwatcheld-website/releases">View Releases</a><a class="btn secondary" href="https://github.com/GasMonkey87/overwatcheld-website/releases">All Releases</a></div></div><div class="panel"><h3>Setup Checklist</h3><table class="table"><tr><th>#</th><th>Task</th></tr><tr><td>1</td><td>Download the newest release file.</td></tr><tr><td>2</td><td>Run it on Windows.</td></tr><tr><td>3</td><td>Start American Truck Simulator.</td></tr><tr><td>4</td><td>Connect telemetry from the ELD dashboard.</td></tr></table></div></div><div class="notice" id="notice">Release data loads from GitHub automatically.</div></section></main>
+<main><section class="wrap"><div class="kicker">Downloads</div><h1 id="title">OverWatch ELD</h1><p class="lead" id="summary">Checking GitHub for the newest Windows launcher...</p><div class="grid two"><div class="panel"><h3>Latest Windows EXE</h3><p id="assetText">This button only uses a real .exe file attached to the newest public release.</p><div class="actions"><a id="downloadBtn" class="btn" href="https://github.com/GasMonkey87/overwatcheld-website/releases">View Releases</a><a class="btn secondary" href="https://github.com/GasMonkey87/overwatcheld-website/releases">All Releases</a></div></div><div class="panel"><h3>Required Release Asset</h3><table class="table"><tr><th>Needed</th><th>Example</th></tr><tr><td>Standalone launcher</td><td>OverWatchELD.exe</td></tr><tr><td>Installer</td><td>OverWatchELD-Setup.exe</td></tr></table></div></div><div class="notice" id="notice">Publish the actual .exe under GitHub release Assets.</div></section></main>
 <footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
 <script>
 (async function(){
@@ -29,24 +29,24 @@
     title.textContent='OverWatch ELD '+(release.tag_name||'Latest');
     summary.textContent=release.name || 'Newest public release';
     const assets=Array.isArray(release.assets)?release.assets:[];
-    const asset=assets.find(a=>/setup|installer|\.exe|\.msi|\.zip|\.nupkg/i.test(a.name)) || assets[0];
-    if(asset && asset.browser_download_url){
-      button.href=asset.browser_download_url;
-      button.textContent='Download '+asset.name;
-      assetText.textContent='Newest file: '+asset.name;
-      notice.textContent='This button automatically follows the newest GitHub release asset.';
+    const exe=assets.find(a=>/\.exe$/i.test(a.name));
+    if(exe && exe.browser_download_url){
+      button.href=exe.browser_download_url;
+      button.textContent='Download '+exe.name;
+      assetText.textContent='Auto-detected Windows launcher: '+exe.name;
+      notice.textContent='This button automatically follows the newest .exe release asset.';
     }else{
       button.href=releaseUrl;
       button.textContent='Open '+(release.tag_name||'Release');
-      assetText.textContent='This release has no attached file yet.';
-      notice.textContent='Attach your installer or zip under release Assets for one-click download.';
+      assetText.textContent='No .exe asset is attached to this release yet.';
+      notice.textContent='Attach OverWatchELD.exe or OverWatchELD-Setup.exe under release Assets.';
     }
   }catch(e){
     button.href=releasesUrl;
     button.textContent='View Releases';
     summary.textContent='Could not read GitHub release data.';
-    assetText.textContent='Open the releases page and choose the newest release manually.';
-    notice.textContent='This avoids the broken GitHub /latest URL.';
+    assetText.textContent='Open the releases page and check the newest release manually.';
+    notice.textContent='The page will auto-update once GitHub release data is available.';
   }
 })();
 </script>
