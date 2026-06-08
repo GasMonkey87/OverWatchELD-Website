@@ -8,40 +8,45 @@
 </head>
 <body>
 <header class="header"><nav class="nav"><a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a><div class="nav-links"><a href="../features/">Features</a><a href="../downloads/">Downloads</a><a href="../live-map/">Live Map</a><a href="../dashboard/">Dashboard</a><a href="../maintenance/">Maintenance</a><a href="../support/">Support</a></div></nav></header>
-<main><section class="wrap"><div class="kicker">Downloads</div><h1 id="title">OverWatch ELD</h1><p class="lead" id="summary">Checking the latest public release...</p><div class="grid two"><div class="panel"><h3>Latest Windows Client</h3><p id="assetText">The download button will update automatically when a new GitHub release is published with an attached file.</p><div class="actions"><a id="downloadBtn" class="btn" href="https://github.com/GasMonkey87/overwatcheld-website/releases/latest">Checking...</a><a class="btn secondary" href="https://github.com/GasMonkey87/overwatcheld-website/releases">All Releases</a></div></div><div class="panel"><h3>Setup Checklist</h3><table class="table"><tr><th>#</th><th>Task</th></tr><tr><td>1</td><td>Download the latest file.</td></tr><tr><td>2</td><td>Run it on Windows.</td></tr><tr><td>3</td><td>Start American Truck Simulator.</td></tr><tr><td>4</td><td>Connect telemetry from the ELD dashboard.</td></tr></table></div></div><div class="notice" id="notice">Latest release data loads from GitHub automatically.</div></section></main>
+<main><section class="wrap"><div class="kicker">Downloads</div><h1 id="title">OverWatch ELD</h1><p class="lead" id="summary">Checking GitHub for the newest release...</p><div class="grid two"><div class="panel"><h3>Latest Windows Client</h3><p id="assetText">The download button updates automatically when a new release is published with an attached file.</p><div class="actions"><a id="downloadBtn" class="btn" href="https://github.com/GasMonkey87/overwatcheld-website/releases">View Releases</a><a class="btn secondary" href="https://github.com/GasMonkey87/overwatcheld-website/releases">All Releases</a></div></div><div class="panel"><h3>Setup Checklist</h3><table class="table"><tr><th>#</th><th>Task</th></tr><tr><td>1</td><td>Download the newest release file.</td></tr><tr><td>2</td><td>Run it on Windows.</td></tr><tr><td>3</td><td>Start American Truck Simulator.</td></tr><tr><td>4</td><td>Connect telemetry from the ELD dashboard.</td></tr></table></div></div><div class="notice" id="notice">Release data loads from GitHub automatically.</div></section></main>
 <footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
 <script>
 (async function(){
+  const repo='GasMonkey87/overwatcheld-website';
+  const releasesUrl='https://github.com/'+repo+'/releases';
   const title=document.getElementById('title');
   const summary=document.getElementById('summary');
   const assetText=document.getElementById('assetText');
   const button=document.getElementById('downloadBtn');
   const notice=document.getElementById('notice');
   try{
-    const res=await fetch('https://api.github.com/repos/GasMonkey87/overwatcheld-website/releases/latest',{headers:{'Accept':'application/vnd.github+json'}});
-    if(!res.ok) throw new Error('release not found');
-    const release=await res.json();
+    const res=await fetch('https://api.github.com/repos/'+repo+'/releases?per_page=10',{headers:{'Accept':'application/vnd.github+json'}});
+    if(!res.ok) throw new Error('release list unavailable');
+    const releases=await res.json();
+    const release=(Array.isArray(releases)?releases:[]).find(r=>!r.draft) || null;
+    if(!release) throw new Error('no public releases');
+    const releaseUrl=release.html_url || releasesUrl;
     title.textContent='OverWatch ELD '+(release.tag_name||'Latest');
-    summary.textContent=release.name||'Latest public release';
+    summary.textContent=release.name || 'Newest public release';
     const assets=Array.isArray(release.assets)?release.assets:[];
-    const asset=assets.find(a=>/setup|installer|\.exe|\.msi|\.zip/i.test(a.name))||assets[0];
-    if(asset&&asset.browser_download_url){
+    const asset=assets.find(a=>/setup|installer|\.exe|\.msi|\.zip|\.nupkg/i.test(a.name)) || assets[0];
+    if(asset && asset.browser_download_url){
       button.href=asset.browser_download_url;
       button.textContent='Download '+asset.name;
-      assetText.textContent='Auto-detected latest release file: '+asset.name;
+      assetText.textContent='Newest file: '+asset.name;
       notice.textContent='This button automatically follows the newest GitHub release asset.';
     }else{
-      button.href=release.html_url||'https://github.com/GasMonkey87/overwatcheld-website/releases/latest';
-      button.textContent='Open Latest Release';
-      assetText.textContent='The latest release has no attached download file yet.';
-      notice.textContent='Attach the published app file under release Assets for one-click download.';
+      button.href=releaseUrl;
+      button.textContent='Open '+(release.tag_name||'Release');
+      assetText.textContent='This release has no attached file yet.';
+      notice.textContent='Attach your installer or zip under release Assets for one-click download.';
     }
   }catch(e){
-    button.href='https://github.com/GasMonkey87/overwatcheld-website/releases/latest';
-    button.textContent='Open Latest Release';
+    button.href=releasesUrl;
+    button.textContent='View Releases';
     summary.textContent='Could not read GitHub release data.';
-    assetText.textContent='Open the releases page and download the newest asset manually.';
-    notice.textContent='GitHub API may be rate limited or the latest release is not published.';
+    assetText.textContent='Open the releases page and choose the newest release manually.';
+    notice.textContent='This avoids the broken GitHub /latest URL.';
   }
 })();
 </script>
