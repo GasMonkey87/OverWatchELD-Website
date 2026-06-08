@@ -11,6 +11,16 @@
   --ok:#49d17d;
 }
 *{box-sizing:border-box}
+/* Fix hidden elements */
+[hidden] {
+    display: none !important;
+}
+
+/* Fix portal profile modal */
+.modal-backdrop[hidden] {
+    display: none !important;
+}
+
 html{scroll-behavior:smooth}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
 a{color:inherit}
@@ -76,7 +86,29 @@ textarea{min-height:140px;resize:vertical}
 .role-row span{color:#92a0b2;font-weight:800}
 .role-row strong{color:#fff;text-align:right}
 .roster-search{max-width:340px}
-.table-wrap{width:100%;overflow:auto;border:1px solid var(--border);border-radius:16px;background:#081019}
+./* Portal roster table scroll area */
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 500px;      /* Adjust as desired */
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #081019;
+}
+
+/* Keep table header visible while scrolling */
+.portal-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #111a24;
+}
+
+/* Prevent table from shrinking */
+.portal-table {
+    min-width: 900px;
+}
 .portal-table{min-width:900px}
 .portal-table tbody tr{cursor:pointer}
 .portal-table tbody tr:hover{background:rgba(245,197,66,.08)}
