@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal | OverWatch ELD</title>
+  <meta name="description" content="OverWatch ELD VTC member portal for drivers, dispatch, managers, owners, roster profiles, and fleet information.">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <header class="header">
+    <nav class="nav">
+      <a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a>
+      <div class="nav-links">
+        <a href="../features/">Features</a>
+        <a href="../downloads/">Downloads</a>
+        <a href="../live-map/">Live Map</a>
+        <a href="../dashboard/">Dashboard</a>
+        <a href="../maintenance/">Maintenance</a>
+        <a href="../portal/">Portal</a>
+        <a href="../support/">Support</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="portalApp" class="portal-shell" data-api-base="https://overwatcheld.up.railway.app">
+    <section id="portalLocked" class="wrap portal-locked" hidden>
+      <div class="panel portal-lock-card">
+        <div class="kicker">Member Access Required</div>
+        <h1>Sign in to open your VTC portal.</h1>
+        <p class="lead">This portal is only visible after a successful Discord or email/password login. Once signed in, members are shown the VTC they are registered with.</p>
+        <div class="actions">
+          <a id="portalLoginLink" class="btn" href="../login/?returnUrl=../portal/">Sign In</a>
+          <a class="btn secondary" href="../">Back Home</a>
+        </div>
+        <p class="portal-help">ELD desktop clients should open this page with a valid session token or after the user has already signed in on the website.</p>
+      </div>
+    </section>
+
+    <section id="portalLoading" class="wrap">
+      <div class="panel">
+        <div class="kicker">Loading Portal</div>
+        <h1>Pulling your VTC information...</h1>
+        <p class="lead">Please stay signed in while OverWatch ELD loads your company portal.</p>
+      </div>
+    </section>
+
+    <section id="portalContent" hidden>
+      <section class="hero portal-hero">
+        <div class="wrap hero-grid">
+          <div>
+            <div class="kicker">VTC Member Portal</div>
+            <h1 id="vtcName">Your VTC</h1>
+            <p id="vtcDescription" class="lead">Company information will appear here after your VTC owner or admin adds a portal description.</p>
+            <div class="actions">
+              <a class="btn" href="#rosterSection">View Roster</a>
+              <a class="btn secondary" href="../live-map/">Open Live Map</a>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>VTC Snapshot</h3>
+            <div class="status-row"><span><span class="dot"></span>Portal</span><strong>Online</strong></div>
+            <div class="status-row"><span>Members</span><strong id="memberCount">0</strong></div>
+            <div class="status-row"><span>Active Drivers</span><strong id="activeDriverCount">0</strong></div>
+            <div class="status-row"><span>Your Role</span><strong id="myRole">Driver</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wrap portal-grid-main">
+        <div class="panel portal-about-card">
+          <div class="section-title-row">
+            <div>
+              <div class="kicker">About</div>
+              <h2>About this VTC</h2>
+            </div>
+            <button id="editAboutBtn" class="btn secondary small-btn" type="button" hidden>Edit About</button>
+          </div>
+          <p id="aboutText">Owners and admins can write a brief company description here.</p>
+          <div id="aboutEditor" class="portal-editor" hidden>
+            <textarea id="aboutTextarea" class="input" maxlength="1200" placeholder="Write a short VTC description..."></textarea>
+            <div class="actions compact-actions">
+              <button id="saveAboutBtn" class="btn" type="button">Save</button>
+              <button id="cancelAboutBtn" class="btn secondary" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="kicker">Staff</div>
+          <h2>Key Roles</h2>
+          <div id="rolesGrid" class="role-list"></div>
+        </div>
+      </section>
+
+      <section id="rosterSection" class="section-alt">
+        <div class="wrap">
+          <div class="section-title-row">
+            <div>
+              <div class="kicker">Roster</div>
+              <h2>VTC Roster</h2>
+              <p class="lead">Double click a roster member to view their driver profile, truck, mileage, awards, and other fleet details.</p>
+            </div>
+            <input id="rosterSearch" class="input roster-search" type="search" placeholder="Search drivers, trucks, roles...">
+          </div>
+          <div class="table-wrap">
+            <table class="table portal-table">
+              <thead>
+                <tr>
+                  <th>Driver</th>
+                  <th>Role</th>
+                  <th>Current Truck</th>
+                  <th>Total Mileage</th>
+                  <th>Status</th>
+                  <th>Awards</th>
+                </tr>
+              </thead>
+              <tbody id="rosterBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <div id="profileModal" class="modal-backdrop" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+        <button id="closeProfileBtn" class="modal-close" type="button" aria-label="Close profile">×</button>
+        <div class="kicker">Driver Profile</div>
+        <h2 id="profileTitle">Driver</h2>
+        <div id="profileContent" class="profile-grid"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
+
+<script>
+(function () {
+  const app = document.getElementById('portalApp');
+  const apiBase = app.dataset.apiBase || 'https://overwatcheld.up.railway.app';
+  const params = new URLSearchParams(window.location.search);
+  const incomingToken = params.get('token') || params.get('session') || params.get('access_token');
+  const incomingGuildId = params.get('guildId') || params.get('vtcId');
+
+  if (incomingToken) localStorage.setItem('oweld_session_token', incomingToken);
+  if (incomingGuildId) localStorage.setItem('oweld_guild_id', incomingGuildId);
+
+  const token = localStorage.getItem('oweld_session_token') || '';
+  const guildId = localStorage.getItem('oweld_guild_id') || '';
+
+  const locked = document.getElementById('portalLocked');
+  const loading = document.getElementById('portalLoading');
+  const content = document.getElementById('portalContent');
+  const loginLink = document.getElementById('portalLoginLink');
+
+  loginLink.href = '../login/?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);
+
+  if (!token) {
+    loading.hidden = true;
+    locked.hidden = false;
+    return;
+  }
+
+  const fallbackPortal = {
+    vtc: {
+      guildId: guildId,
+      name: 'Registered VTC',
+      description: 'Add your VTC description from the owner/admin portal settings.',
+      about: 'This page is ready for your VTC information. Owners and admins can update the about section after portal APIs are connected.',
+      myRole: 'Driver'
+    },
+    roles: [
+      { role: 'Owner', userName: 'Not assigned' },
+      { role: 'Manager', userName: 'Not assigned' },
+      { role: 'Dispatch', userName: 'Not assigned' },
+      { role: 'Mechanic', userName: 'Not assigned' }
+    ],
+    roster: []
+  };
+
+  async function apiGet(path) {
+    const res = await fetch(apiBase + path, {
+      cache: 'no-store',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'X-OverWatch-Session': token
+      }
+    });
+    if (!res.ok) throw new Error('Request failed: ' + res.status);
+    return await res.json();
+  }
+
+  async function apiPost(path, body) {
+    const res = await fetch(apiBase + path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'X-OverWatch-Session': token
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('Save failed: ' + res.status);
+    return await res.json().catch(() => ({ ok: true }));
+  }
+
+  async function loadPortal() {
+    let data = fallbackPortal;
+    try {
+      const suffix = guildId ? ('?guildId=' + encodeURIComponent(guildId)) : '';
+      data = await apiGet('/api/portal/me' + suffix);
+    } catch (err) {
+      console.warn('Portal API unavailable, using safe fallback.', err);
+    }
+
+    const vtc = data.vtc || fallbackPortal.vtc;
+    const roles = data.roles || fallbackPortal.roles;
+    const roster = data.roster || [];
+
+    document.getElementById('vtcName').textContent = vtc.name || 'Registered VTC';
+    document.getElementById('vtcDescription').textContent = vtc.description || fallbackPortal.vtc.description;
+    document.getElementById('aboutText').textContent = vtc.about || vtc.description || fallbackPortal.vtc.about;
+    document.getElementById('myRole').textContent = vtc.myRole || 'Driver';
+    document.getElementById('memberCount').textContent = roster.length.toString();
+    document.getElementById('activeDriverCount').textContent = roster.filter(x => String(x.status || '').toLowerCase() === 'online' || String(x.dutyStatus || '').toLowerCase() === 'driving').length.toString();
+
+    renderRoles(roles);
+    renderRoster(roster);
+    setupAboutEditor(vtc);
+
+    loading.hidden = true;
+    content.hidden = false;
+  }
+
+  function renderRoles(roles) {
+    const grid = document.getElementById('rolesGrid');
+    grid.innerHTML = '';
+    roles.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'role-row';
+      row.innerHTML = '<span>' + escapeHtml(item.role || 'Role') + '</span><strong>' + escapeHtml(item.userName || item.username || 'Not assigned') + '</strong>';
+      grid.appendChild(row);
+    });
+  }
+
+  let currentRoster = [];
+
+  function renderRoster(roster) {
+    currentRoster = roster;
+    const body = document.getElementById('rosterBody');
+    body.innerHTML = '';
+
+    if (!roster.length) {
+      body.innerHTML = '<tr><td colspan="6">No roster members loaded yet. Connect /api/portal/me to your VTC roster data.</td></tr>';
+      return;
+    }
+
+    roster.forEach((member, index) => {
+      const tr = document.createElement('tr');
+      tr.tabIndex = 0;
+      tr.dataset.index = index;
+      tr.innerHTML = '<td><strong>' + escapeHtml(member.userName || member.username || member.driverName || 'Driver') + '</strong></td>' +
+        '<td>' + escapeHtml(member.role || 'Driver') + '</td>' +
+        '<td>' + escapeHtml(member.currentTruck || member.truck || 'Unassigned') + '</td>' +
+        '<td>' + formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0) + '</td>' +
+        '<td><span class="badge">' + escapeHtml(member.status || member.dutyStatus || 'Offline') + '</span></td>' +
+        '<td>' + escapeHtml((member.awards || []).join(', ') || 'None') + '</td>';
+      tr.addEventListener('dblclick', () => openProfile(member));
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter') openProfile(member); });
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('rosterSearch').addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    if (!q) return renderRoster(currentRoster);
+    renderRoster(currentRoster.filter(m => JSON.stringify(m).toLowerCase().includes(q)));
+  });
+
+  function openProfile(member) {
+    document.getElementById('profileTitle').textContent = member.userName || member.username || member.driverName || 'Driver';
+    const awards = member.awards && member.awards.length ? member.awards.join(', ') : 'None';
+    document.getElementById('profileContent').innerHTML =
+      profileItem('Role', member.role || 'Driver') +
+      profileItem('Current Truck', member.currentTruck || member.truck || 'Unassigned') +
+      profileItem('Total Mileage', formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0)) +
+      profileItem('Status', member.status || member.dutyStatus || 'Offline') +
+      profileItem('Awards', awards) +
+      profileItem('Last Known Location', member.location || member.cityState || 'Unknown') +
+      profileItem('Driver Score', member.driverScore || member.score || 'N/A') +
+      profileItem('Joined', member.joined || member.joinedAt || 'N/A');
+    document.getElementById('profileModal').hidden = false;
+  }
+
+  document.getElementById('closeProfileBtn').addEventListener('click', () => document.getElementById('profileModal').hidden = true);
+  document.getElementById('profileModal').addEventListener('click', e => { if (e.target.id === 'profileModal') e.currentTarget.hidden = true; });
+
+  function setupAboutEditor(vtc) {
+    const canEdit = ['owner', 'admin', 'manager'].includes(String(vtc.myRole || '').toLowerCase()) || vtc.canEditPortal === true;
+    const editBtn = document.getElementById('editAboutBtn');
+    const editor = document.getElementById('aboutEditor');
+    const textarea = document.getElementById('aboutTextarea');
+    editBtn.hidden = !canEdit;
+    textarea.value = vtc.about || vtc.description || '';
+
+    editBtn.onclick = () => { editor.hidden = false; editBtn.hidden = true; textarea.focus(); };
+    document.getElementById('cancelAboutBtn').onclick = () => { editor.hidden = true; editBtn.hidden = false; };
+    document.getElementById('saveAboutBtn').onclick = async () => {
+      const about = textarea.value.trim();
+      document.getElementById('aboutText').textContent = about || 'Owners and admins can write a brief company description here.';
+      try {
+        await apiPost('/api/portal/about', { guildId: vtc.guildId || guildId, about });
+      } catch (err) {
+        console.warn('About save endpoint unavailable.', err);
+      }
+      editor.hidden = true;
+      editBtn.hidden = false;
+    };
+  }
+
+  function profileItem(label, value) {
+    return '<div class="profile-item"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value)) + '</strong></div>';
+  }
+
+  function formatMiles(value) {
+    const n = Number(value || 0);
+    return n.toLocaleString() + ' mi';
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\'': '&#39;', '"': '&quot;' }[c]));
+  }
+
+  loadPortal();
+})();
+</script>
+</body>
+</html>
