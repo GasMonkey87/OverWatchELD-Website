@@ -23,7 +23,7 @@
     </nav>
   </header>
 
-  <main class="login-page" data-api-base="https://overwatcheld.up.railway.app">
+  <main class="login-page" data-api-base="https://api.overwatcheld.com">
     <section class="wrap login-wrap">
       <div class="panel login-panel">
         <div class="kicker">Member Login</div>
@@ -70,7 +70,7 @@
 <script>
 (function () {
   const page = document.querySelector('.login-page');
-  const apiBase = page.dataset.apiBase || 'https://overwatcheld.up.railway.app';
+  const apiBase = page.dataset.apiBase || 'https://api.overwatcheld.com';
   const params = new URLSearchParams(window.location.search);
   const returnUrl = params.get('returnUrl') || '../portal/';
   const messageBox = document.getElementById('loginMessage');
@@ -121,10 +121,8 @@
   });
 
   document.getElementById('discordLoginBtn').addEventListener('click', function () {
-    const callback = window.location.origin + window.location.pathname;
     const url = apiBase + '/api/auth/discord/login'
-      + '?returnUrl=' + encodeURIComponent(returnUrl)
-      + '&callbackUrl=' + encodeURIComponent(callback);
+      + '?returnUrl=' + encodeURIComponent(returnUrl);
     window.location.href = url;
   });
 
