@@ -354,23 +354,56 @@
     renderRoster(currentRoster.filter(m => JSON.stringify(m).toLowerCase().includes(q)));
   });
 
-  function openProfile(member) {
-    document.getElementById('profileTitle').textContent = member.userName || member.username || member.driverName || member.name || 'Driver';
-    const awards = Array.isArray(member.awards) ? (member.awards.join(', ') || 'None') : (member.awards || 'None');
-    document.getElementById('profileContent').innerHTML =
-      profileItem('Role', member.role || 'Driver') +
-      profileItem('Current Truck', member.currentTruck || member.truck || member.assignedTruck || 'Unassigned') +
-      profileItem('Total Mileage', formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0)) +
-      profileItem('Status', member.status || member.dutyStatus || 'Offline') +
-      profileItem('Awards', awards) +
-      profileItem('Last Known Location', member.location || member.cityState || 'Unknown') +
-      profileItem('Driver Score', member.driverScore || member.score || 'N/A') +
-      profileItem('Joined', member.joined || member.joinedAt || 'N/A');
-    document.getElementById('profileModal').hidden = false;
-  }
+  const profileModal = document.getElementById('profileModal');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
 
-  document.getElementById('closeProfileBtn').addEventListener('click', () => document.getElementById('profileModal').hidden = true);
-  document.getElementById('profileModal').addEventListener('click', e => { if (e.target.id === 'profileModal') e.currentTarget.hidden = true; });
+function closeProfile() {
+    profileModal.hidden = true;
+    profileModal.style.display = 'none';
+}
+
+function openProfile(member) {
+    document.getElementById('profileTitle').textContent =
+        member.userName ||
+        member.username ||
+        member.driverName ||
+        member.name ||
+        'Driver';
+
+    const awards =
+        Array.isArray(member.awards)
+            ? (member.awards.join(', ') || 'None')
+            : (member.awards || 'None');
+
+    document.getElementById('profileContent').innerHTML =
+        profileItem('Role', member.role || 'Driver') +
+        profileItem('Current Truck', member.currentTruck || member.truck || member.assignedTruck || 'Unassigned') +
+        profileItem('Total Mileage', formatMiles(member.totalMileage || member.totalMiles || member.mileage || 0)) +
+        profileItem('Status', member.status || member.dutyStatus || 'Offline') +
+        profileItem('Awards', awards) +
+        profileItem('Last Known Location', member.location || member.cityState || 'Unknown') +
+        profileItem('Driver Score', member.driverScore || member.score || 'N/A') +
+        profileItem('Joined', member.joined || member.joinedAt || 'N/A');
+
+    profileModal.hidden = false;
+    profileModal.style.display = 'grid';
+}
+
+closeProfile();
+
+closeProfileBtn.addEventListener('click', closeProfile);
+
+profileModal.addEventListener('click', function (e) {
+    if (e.target === profileModal) {
+        closeProfile();
+    }
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeProfile();
+    }
+});
 
   function setupAboutEditor(vtc, resolvedGuildId) {
     const canEdit = ['owner', 'admin', 'manager'].includes(String(vtc.myRole || '').toLowerCase()) || vtc.canEditPortal === true;
