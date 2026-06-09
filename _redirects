@@ -1,3 +1,7 @@
+https://www.overwatcheld.com/* https://overwatcheld.com/:splat 301!
+http://www.overwatcheld.com/* https://overwatcheld.com/:splat 301!
+http://overwatcheld.com/* https://overwatcheld.com/:splat 301!
+
 /                  /index.html               200
 /features          /features/index.html      200
 /features/         /features/index.html      200
@@ -9,6 +13,14 @@
 /dashboard/        /dashboard/index.html     200
 /maintenance       /maintenance/index.html   200
 /maintenance/      /maintenance/index.html   200
+/vtc               /vtc/index.html           200
+/vtc/              /vtc/index.html           200
+/portal            /portal/index.html        200
+/portal/           /portal/index.html        200
+/select-vtc        /select-vtc/index.html    200
+/select-vtc/       /select-vtc/index.html    200
+/login             /login/index.html         200
+/login/            /login/index.html         200
 /support           /support/index.html       200
 /support/          /support/index.html       200
 /profile           /profile/index.html       200
