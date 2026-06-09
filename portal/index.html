@@ -4,112 +4,72 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VTC Portal | OverWatch ELD</title>
-  <meta name="description" content="OverWatch ELD VTC portal with roster, fleet, jobs, garages, achievements, and management tools.">
+  <meta name="description" content="OverWatch ELD VTC portal with tabbed roster, fleet, jobs, garages, achievements, and management tools.">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
-<header class="header">
-  <nav class="nav">
-    <a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a>
-    <div class="nav-links">
-      <a href="../live-map/">Live Map</a>
-      <a href="../dashboard/">Dashboard</a>
-      <a href="../maintenance/">Maintenance</a>
-      <a href="../portal/">Portal</a>
-      <a href="../support/">Support</a>
-    </div>
-  </nav>
-</header>
+<header class="header"><nav class="nav"><a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a><div class="nav-links"><a href="../live-map/">Live Map</a><a href="../dashboard/">Dashboard</a><a href="../maintenance/">Maintenance</a><a href="../portal/">Portal</a><a href="../support/">Support</a></div></nav></header>
 
 <main id="portalApp" class="portal-shell trucky-portal" data-api-base="https://api.overwatcheld.com">
-  <section id="portalLoading" class="wrap">
-    <div class="panel"><div class="kicker">VTC Portal</div><h1>Loading company profile...</h1><p class="lead">Pulling roster, fleet, garage, and company information.</p></div>
-  </section>
+  <section id="portalLoading" class="wrap"><div class="panel"><div class="kicker">VTC Portal</div><h1>Loading company profile...</h1><p class="lead">Pulling roster, fleet, garage, and company information.</p></div></section>
 
   <section id="portalContent" hidden>
-    <section class="trucky-cover">
-      <div class="wrap trucky-cover-inner">
-        <div class="trucky-company-card">
-          <div id="vtcAvatar" class="trucky-avatar">OW</div>
+    <section class="trucky-cover condensed-cover">
+      <div class="wrap trucky-cover-inner condensed-cover-inner">
+        <div class="trucky-company-card compact-company-card">
+          <div id="vtcAvatar" class="trucky-avatar compact-avatar">OW</div>
           <div>
             <div class="kicker">Virtual Trucking Company</div>
             <h1 id="vtcName">Your VTC</h1>
             <p id="vtcDescription" class="lead">Welcome to your OverWatch ELD company portal.</p>
-            <div class="actions trucky-actions">
-              <a class="btn" href="../live-map/">Live Map</a>
-              <a class="btn secondary" href="#jobsSection">Jobs</a>
-              <a class="btn secondary" href="#rosterSection">Roster</a>
-              <a id="adminPortalBtn" class="btn secondary" href="admin/" hidden>Admin / Manage Portal</a>
-              <button id="logoutPortalBtn" class="btn secondary" type="button">Logout</button>
-            </div>
+            <div class="actions trucky-actions compact-actions-row"><a class="btn" href="../live-map/">Live Map</a><a id="adminPortalBtn" class="btn secondary" href="admin/" hidden>Admin / Manage Portal</a><button id="logoutPortalBtn" class="btn secondary" type="button">Logout</button></div>
           </div>
         </div>
-
-        <div class="trucky-rank-card panel">
-          <h3>Company Rank</h3>
-          <div class="trucky-rank-number" id="companyRank">#--</div>
-          <p id="companyRoleText">Your role: Driver</p>
-        </div>
+        <div class="trucky-rank-card panel compact-rank-card"><h3>Company Rank</h3><div class="trucky-rank-number" id="companyRank">#--</div><p id="companyRoleText">Your role: Driver</p></div>
       </div>
     </section>
 
-    <section class="wrap trucky-stat-grid">
+    <section class="wrap trucky-stat-grid compact-stat-grid">
       <div class="trucky-stat"><span>Members</span><strong id="memberCount">0</strong></div>
       <div class="trucky-stat"><span>Online</span><strong id="onlineCount">0</strong></div>
       <div class="trucky-stat"><span>Total Miles</span><strong id="totalMilesCount">0</strong></div>
-      <div class="trucky-stat"><span>Fleet Trucks</span><strong id="truckCount">0</strong></div>
+      <div class="trucky-stat"><span>Fleet</span><strong id="truckCount">0</strong></div>
       <div class="trucky-stat"><span>Assigned</span><strong id="assignedTruckCount">0</strong></div>
       <div class="trucky-stat"><span>Garages</span><strong id="garageCount">0</strong></div>
     </section>
 
-    <section class="wrap trucky-tabs">
-      <a href="#overviewSection">Overview</a>
-      <a href="#jobsSection">Jobs</a>
-      <a href="#leaderboardSection">Leaderboard</a>
-      <a href="#fleetSection">Fleet</a>
-      <a href="#garageSection">Garages</a>
-      <a href="#awardsSection">Awards</a>
-      <a href="#rosterSection">Roster</a>
-    </section>
-
-    <section id="overviewSection" class="wrap portal-grid-main">
-      <div class="panel portal-about-card">
-        <div class="section-title-row">
-          <div><div class="kicker">Company Profile</div><h2>About the VTC</h2></div>
-          <button id="editAboutBtn" class="btn secondary small-btn" type="button" hidden>Edit About</button>
-        </div>
-        <p id="aboutText">Owners and admins can write a brief company description here.</p>
-        <div id="aboutEditor" class="portal-editor" hidden>
-          <textarea id="aboutTextarea" class="input" maxlength="1200" placeholder="Write a short VTC description..."></textarea>
-          <div class="actions compact-actions"><button id="saveAboutBtn" class="btn" type="button">Save</button><button id="cancelAboutBtn" class="btn secondary" type="button">Cancel</button></div>
-        </div>
+    <section class="wrap tab-dashboard-wrap">
+      <div class="trucky-tabs tabbar" role="tablist" aria-label="VTC Portal Sections">
+        <button class="tab-btn active" type="button" data-tab="overviewPanel">Overview</button>
+        <button class="tab-btn" type="button" data-tab="jobsPanel">Jobs</button>
+        <button class="tab-btn" type="button" data-tab="leaderboardPanel">Leaderboard</button>
+        <button class="tab-btn" type="button" data-tab="fleetPanel">Fleet</button>
+        <button class="tab-btn" type="button" data-tab="garagePanel">Garages</button>
+        <button class="tab-btn" type="button" data-tab="awardsPanel">Awards</button>
+        <button class="tab-btn" type="button" data-tab="rosterPanel">Roster</button>
       </div>
-      <div class="panel">
-        <div class="kicker">Management Team</div><h2>Key Roles</h2><div id="rolesGrid" class="role-list"></div>
+
+      <div class="tab-shell panel">
+        <section id="overviewPanel" class="tab-panel active">
+          <div class="tab-panel-scroll portal-grid-main">
+            <div class="portal-about-card"><div class="section-title-row"><div><div class="kicker">Company Profile</div><h2>About the VTC</h2></div><button id="editAboutBtn" class="btn secondary small-btn" type="button" hidden>Edit About</button></div><p id="aboutText">Owners and admins can write a brief company description here.</p><div id="aboutEditor" class="portal-editor" hidden><textarea id="aboutTextarea" class="input" maxlength="1200" placeholder="Write a short VTC description..."></textarea><div class="actions compact-actions"><button id="saveAboutBtn" class="btn" type="button">Save</button><button id="cancelAboutBtn" class="btn secondary" type="button">Cancel</button></div></div></div>
+            <div><div class="kicker">Management Team</div><h2>Key Roles</h2><div id="rolesGrid" class="role-list"></div></div>
+            <div class="tab-wide"><div class="section-title-row"><div><div class="kicker">Company Board</div><h2>Latest Activity</h2></div></div><div id="latestGrid" class="portal-card-grid compact-card-grid"></div></div>
+          </div>
+        </section>
+
+        <section id="jobsPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Dispatch Board</div><h2>Recent Jobs & Loads</h2><p class="lead">Active/completed loads from ELD telemetry.</p></div></div><div id="jobsGrid" class="portal-card-grid compact-card-grid"></div></div></section>
+        <section id="leaderboardPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Leaderboard</div><h2>Top Drivers</h2><p class="lead">Ranked by mileage, status, and performance data.</p></div></div><div id="leaderboardGrid" class="portal-card-grid compact-card-grid"></div></div></section>
+        <section id="fleetPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Fleet</div><h2>Company Trucks</h2><p class="lead">Approved and assigned fleet trucks.</p></div></div><div id="fleetGrid" class="portal-card-grid compact-card-grid"></div></div></section>
+        <section id="garagePanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Garages</div><h2>Company Garages</h2><p class="lead">Owned and available company locations.</p></div></div><div id="garageGrid" class="portal-card-grid compact-card-grid"></div></div></section>
+        <section id="awardsPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Achievements</div><h2>Awards & Badges</h2><p class="lead">Company achievements and driver awards.</p></div></div><div id="awardsGrid" class="portal-card-grid compact-card-grid"></div></div></section>
+        <section id="rosterPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Members</div><h2>VTC Roster</h2><p class="lead">Double click a driver to view profile details.</p></div><input id="rosterSearch" class="input roster-search" type="search" placeholder="Search drivers, trucks, roles..."></div><div class="table-wrap roster-scroll-wrap"><table class="table portal-table"><thead><tr><th>Driver</th><th>Role</th><th>Truck</th><th>Mileage</th><th>Status</th><th>Awards</th></tr></thead><tbody id="rosterBody"></tbody></table></div></div></section>
       </div>
     </section>
-
-    <section class="section-alt" id="activitySection"><div class="wrap"><div class="section-title-row"><div><div class="kicker">Company Board</div><h2>Latest Activity</h2><p class="lead">Recent announcements, portal updates, and VTC notes.</p></div></div><div id="latestGrid" class="portal-card-grid"></div></div></section>
-
-    <section id="jobsSection" class="wrap">
-      <div class="section-title-row"><div><div class="kicker">Dispatch Board</div><h2>Recent Jobs & Loads</h2><p class="lead">Trucky-style job board for active/completed loads as they become available from ELD telemetry.</p></div></div>
-      <div id="jobsGrid" class="portal-card-grid"></div>
-    </section>
-
-    <section id="leaderboardSection" class="section-alt"><div class="wrap"><div class="section-title-row"><div><div class="kicker">Leaderboard</div><h2>Top Drivers</h2><p class="lead">Ranked by mileage, status, and available driver performance data.</p></div></div><div id="leaderboardGrid" class="portal-card-grid"></div></div></section>
-
-    <section id="fleetSection" class="wrap"><div class="section-title-row"><div><div class="kicker">Fleet</div><h2>Company Trucks</h2><p class="lead">Approved and assigned fleet trucks.</p></div></div><div id="fleetGrid" class="portal-card-grid"></div></section>
-
-    <section id="garageSection" class="section-alt"><div class="wrap"><div class="section-title-row"><div><div class="kicker">Garages</div><h2>Company Garages</h2><p class="lead">Owned and available company locations.</p></div></div><div id="garageGrid" class="portal-card-grid"></div></div></section>
-
-    <section id="awardsSection" class="wrap"><div class="section-title-row"><div><div class="kicker">Achievements</div><h2>Awards & Badges</h2><p class="lead">Company achievements and driver awards.</p></div></div><div id="awardsGrid" class="portal-card-grid"></div></section>
-
-    <section id="rosterSection" class="section-alt"><div class="wrap"><div class="section-title-row"><div><div class="kicker">Members</div><h2>VTC Roster</h2><p class="lead">Double click a driver to view profile details.</p></div><input id="rosterSearch" class="input roster-search" type="search" placeholder="Search drivers, trucks, roles..."></div><div class="table-wrap roster-scroll-wrap"><table class="table portal-table"><thead><tr><th>Driver</th><th>Role</th><th>Truck</th><th>Mileage</th><th>Status</th><th>Awards</th></tr></thead><tbody id="rosterBody"></tbody></table></div></div></section>
   </section>
 
   <div id="profileModal" class="modal-backdrop" hidden style="display:none;"><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profileTitle"><button id="closeProfileBtn" class="modal-close" type="button" aria-label="Close profile">×</button><div class="kicker">Driver Profile</div><h2 id="profileTitle">Driver</h2><div id="profileContent" class="profile-grid"></div></div></div>
 </main>
-
 <footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
 
 <script>
@@ -119,25 +79,27 @@ const p=new URLSearchParams(location.search); const incomingToken=p.get('token')
 if(incomingToken)localStorage.setItem('oweld_session_token',incomingToken); if(incomingGuildId)localStorage.setItem('oweld_guild_id',incomingGuildId);
 const token=localStorage.getItem('oweld_session_token')||''; const guildId=localStorage.getItem('oweld_guild_id')||'';
 const loading=document.getElementById('portalLoading'), content=document.getElementById('portalContent'), profileModal=document.getElementById('profileModal'), closeProfileBtn=document.getElementById('closeProfileBtn'), adminPortalBtn=document.getElementById('adminPortalBtn');
-let currentRoster=[]; forceCloseProfile(); if(!token){location.replace('../login/?returnUrl='+encodeURIComponent(location.pathname+location.search));return;}
+let currentRoster=[]; forceCloseProfile(); setupTabs(); if(!token){location.replace('../login/?returnUrl='+encodeURIComponent(location.pathname+location.search));return;}
 document.getElementById('logoutPortalBtn').onclick=()=>{localStorage.removeItem('oweld_session_token');localStorage.removeItem('oweld_guild_id');location.href='../login/?returnUrl='+encodeURIComponent('/portal/');};
 closeProfileBtn.onclick=forceCloseProfile; profileModal.onclick=e=>{if(e.target===profileModal)forceCloseProfile();}; document.addEventListener('keydown',e=>{if(e.key==='Escape')forceCloseProfile();});
+function setupTabs(){document.querySelectorAll('.tab-btn').forEach(btn=>{btn.onclick=()=>activateTab(btn.dataset.tab);});}
+function activateTab(id){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===id));}
 async function apiGet(path){const res=await fetch(apiBase+path,{cache:'no-store',headers:{Authorization:'Bearer '+token,'X-OverWatch-Session':token}}); if(res.status===401){localStorage.removeItem('oweld_session_token');localStorage.removeItem('oweld_guild_id');location.replace('../login/?returnUrl='+encodeURIComponent('/portal/')); throw new Error('Not authenticated');} if(!res.ok)throw new Error('Request failed: '+res.status); return await res.json();}
 async function apiPost(path,body){const res=await fetch(apiBase+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,'X-OverWatch-Session':token},body:JSON.stringify(body)}); if(!res.ok)throw new Error('Save failed: '+res.status); return await res.json().catch(()=>({ok:true}));}
 async function loadPortal(){let data; try{data=await apiGet('/api/portal/me'+(guildId?'?guildId='+encodeURIComponent(guildId):''));}catch(err){showFatal('Unable to load your VTC portal yet.','Redeploy the bot/API and make sure the Discord user is in a server where the OverWatch ELD bot is installed.');return;} if(!data||data.ok===false){showFatal('No VTC found for this login.','Join or link a Discord server that has the OverWatch ELD bot installed, then sign in again.');return;}
 const vtc=data.vtc||{}, stats=data.stats||{}, roles=data.roles||[], roster=data.roster||[], latest=data.latest||data.latestInfo||[], fleet=data.fleet||data.trucks||[], garages=data.garages||[], jobs=data.jobs||data.loads||[], awards=data.awards||data.achievements||[];
 if(data.guildId)localStorage.setItem('oweld_guild_id',data.guildId);
 document.getElementById('vtcName').textContent=vtc.name||data.vtcName||'Registered VTC'; document.getElementById('vtcDescription').textContent=vtc.description||'Welcome to your OverWatch ELD company portal.'; document.getElementById('aboutText').textContent=vtc.about||vtc.description||'Owners and admins can write a brief company description here.';
-document.getElementById('myRole')?.replaceChildren(document.createTextNode(vtc.myRole||'Driver')); document.getElementById('companyRoleText').textContent='Your role: '+(vtc.myRole||'Driver'); document.getElementById('vtcAvatar').textContent=initials(vtc.name||data.vtcName||'OW');
+document.getElementById('companyRoleText').textContent='Your role: '+(vtc.myRole||'Driver'); document.getElementById('vtcAvatar').textContent=initials(vtc.name||data.vtcName||'OW');
 document.getElementById('memberCount').textContent=String(stats.members??roster.length??0); document.getElementById('onlineCount').textContent=String(stats.onlineMembers??0); document.getElementById('truckCount').textContent=String(stats.fleetTrucks??fleet.length??0); document.getElementById('assignedTruckCount').textContent=String(stats.assignedTrucks??0); document.getElementById('garageCount').textContent=String(stats.garages??garages.length??0); document.getElementById('totalMilesCount').textContent=formatMilesShort(sumMiles(roster)); document.getElementById('companyRank').textContent=stats.rank?('#'+stats.rank):'#--'; adminPortalBtn.hidden=vtc.canEditPortal!==true;
 renderRoles(roles); renderLatest(latest,vtc); renderJobs(jobs); renderLeaderboard(roster); renderFleet(fleet); renderGarages(garages); renderAwards(awards,roster); renderRoster(roster); setupAboutEditor(vtc,data.guildId||guildId); forceCloseProfile(); loading.hidden=true; content.hidden=false;}
 function renderRoles(roles){const grid=document.getElementById('rolesGrid');grid.innerHTML='';(roles.length?roles:[{role:'Owner',userName:'Not assigned'},{role:'Manager',userName:'Not assigned'},{role:'Dispatch',userName:'Not assigned'},{role:'Mechanic',userName:'Not assigned'}]).forEach(x=>{const r=document.createElement('div');r.className='role-row';r.innerHTML='<span>'+esc(x.role||'Role')+'</span><strong>'+esc(x.userName||x.username||'Not assigned')+'</strong>';grid.appendChild(r);});}
-function renderLatest(items,vtc){const grid=document.getElementById('latestGrid');grid.innerHTML='';const rows=items.length?items:[{title:'Welcome',body:vtc.about||vtc.description||'Your Trucky-style VTC portal is active.',meta:'Company News'},{title:'Live Operations',body:'Live map, roster, fleet, garages, awards, dispatch board, and management tools are now part of the portal.',meta:'Portal Update'},{title:'Management',body:'Owners, Admins, and Managers can open Admin / Manage Portal to update company info.',meta:'Staff'}];rows.slice(0,6).forEach(x=>grid.appendChild(card(x.title||'Info',x.body||x.message||'',x.meta||x.createdUtc||'Info')));}
-function renderJobs(items){const grid=document.getElementById('jobsGrid');grid.innerHTML=''; if(!items.length){grid.appendChild(card('No jobs synced yet','Completed and active loads from the ELD will appear here once the backend starts sending job history to the portal.','Dispatch'));grid.appendChild(card('Active Dispatch','Drivers can use OverWatch ELD to create/import loads and post completion reports.','ELD Loads'));return;} items.slice(0,9).forEach(j=>grid.appendChild(card(j.title||j.loadNumber||'Load', 'Driver: '+esc(j.driver||'Unknown')+'<br>Route: '+esc(j.origin||'N/A')+' → '+esc(j.destination||'N/A')+'<br>Miles: '+esc(j.miles||j.distance||'0'), j.status||'Job')));}
-function renderLeaderboard(roster){const grid=document.getElementById('leaderboardGrid');grid.innerHTML=''; const rows=[...roster].sort((a,b)=>num(b.totalMileage||b.totalMiles||b.mileage)-num(a.totalMileage||a.totalMiles||a.mileage)).slice(0,6); if(!rows.length){grid.appendChild(card('No leaderboard yet','Driver rankings appear after roster and mileage data are available.','Leaderboard'));return;} rows.forEach((m,i)=>grid.appendChild(card('#'+(i+1)+' '+esc(m.userName||m.name||'Driver'), 'Truck: '+esc(m.currentTruck||'Unassigned')+'<br>Miles: '+formatMiles(num(m.totalMileage||m.totalMiles||m.mileage))+'<br>Status: '+esc(m.status||'Offline'), m.role||'Driver')));}
+function renderLatest(items,vtc){const grid=document.getElementById('latestGrid');grid.innerHTML='';const rows=items.length?items:[{title:'Welcome',body:vtc.about||vtc.description||'Your compact VTC portal is active.',meta:'Company News'},{title:'Tabbed Portal',body:'Use the tabs above to switch sections without endless scrolling.',meta:'Portal Update'},{title:'Management',body:'Owners, Admins, and Managers can open Admin / Manage Portal to update company info.',meta:'Staff'}];rows.slice(0,6).forEach(x=>grid.appendChild(card(x.title||'Info',x.body||x.message||'',x.meta||x.createdUtc||'Info')));}
+function renderJobs(items){const grid=document.getElementById('jobsGrid');grid.innerHTML=''; if(!items.length){grid.appendChild(card('No jobs synced yet','Completed and active loads from the ELD will appear here once the backend starts sending job history to the portal.','Dispatch'));grid.appendChild(card('Active Dispatch','Drivers can use OverWatch ELD to create/import loads and post completion reports.','ELD Loads'));return;} items.slice(0,12).forEach(j=>grid.appendChild(card(j.title||j.loadNumber||'Load','Driver: '+esc(j.driver||'Unknown')+'<br>Route: '+esc(j.origin||'N/A')+' → '+esc(j.destination||'N/A')+'<br>Miles: '+esc(j.miles||j.distance||'0'),j.status||'Job')));}
+function renderLeaderboard(roster){const grid=document.getElementById('leaderboardGrid');grid.innerHTML=''; const rows=[...roster].sort((a,b)=>num(b.totalMileage||b.totalMiles||b.mileage)-num(a.totalMileage||a.totalMiles||a.mileage)).slice(0,10); if(!rows.length){grid.appendChild(card('No leaderboard yet','Driver rankings appear after roster and mileage data are available.','Leaderboard'));return;} rows.forEach((m,i)=>grid.appendChild(card('#'+(i+1)+' '+esc(m.userName||m.name||'Driver'),'Truck: '+esc(m.currentTruck||'Unassigned')+'<br>Miles: '+formatMiles(num(m.totalMileage||m.totalMiles||m.mileage))+'<br>Status: '+esc(m.status||'Offline'),m.role||'Driver')));}
 function renderFleet(items){const grid=document.getElementById('fleetGrid');grid.innerHTML=''; if(!items.length){grid.appendChild(card('No fleet trucks yet','Approved trucks will show here after they are added in Fleet Analytics or VTC admin tools.','Fleet'));return;} items.slice(0,12).forEach(t=>grid.appendChild(card('#'+esc(t.truckNumber||'')+' '+esc(t.name||t.model||'Truck'),'Driver: '+esc(t.driver||'Unassigned')+'<br>Plate: '+esc(t.plate||'N/A')+'<br>Odometer: '+esc(t.odometer||'N/A')+'<br>Location: '+esc(t.location||'Unknown'),t.status||'Truck')));}
-function renderGarages(items){const grid=document.getElementById('garageGrid');grid.innerHTML=''; if(!items.length){grid.appendChild(card('No garages saved yet','Purchased or configured company garages will show here.','Garage'));return;} items.slice(0,12).forEach(g=>grid.appendChild(card(g.cityName||g.city||'Garage','State: '+esc(g.state||'N/A')+'<br>Size: '+esc(g.size||'Small')+'<br>Slots: '+esc(g.slots||g.truckCapacity||'0'),(g.isOwned)?'Owned':'Available')));}
-function renderAwards(items,roster){const grid=document.getElementById('awardsGrid');grid.innerHTML=''; let rows=items.length?items:[]; if(!rows.length){const found=[]; roster.forEach(r=>{const a=Array.isArray(r.awards)?r.awards:[r.awards]; a.filter(Boolean).forEach(x=>found.push({title:x,body:(r.userName||'Driver')+' earned this award.',meta:'Driver Award'}));}); rows=found;} if(!rows.length){rows=[{title:'First Delivery',body:'Award drivers for their first completed ELD load.',meta:'Achievement'},{title:'Million Mile Club',body:'Celebrate drivers who reach major mileage milestones.',meta:'Achievement'},{title:'Clean Inspection',body:'Recognize safe driving and inspection history.',meta:'Safety'}];} rows.slice(0,9).forEach(a=>grid.appendChild(card(a.title||a.name||'Award',a.body||a.description||'Company achievement.',a.meta||'Award')));}
+function renderGarages(items){const grid=document.getElementById('garageGrid');grid.innerHTML=''; if(!items.length){grid.appendChild(card('No garages saved yet','Purchased or configured company garages will show here.','Garage'));return;} items.slice(0,12).forEach(g=>grid.appendChild(card(g.cityName||g.city||'Garage','State: '+esc(g.state||'N/A')+'<br>Size: '+esc(g.size||'Small')+'<br>Slots: '+esc(g.slots||g.truckCapacity||'0'),g.isOwned?'Owned':'Available')));}
+function renderAwards(items,roster){const grid=document.getElementById('awardsGrid');grid.innerHTML=''; let rows=items.length?items:[]; if(!rows.length){const found=[]; roster.forEach(r=>{const a=Array.isArray(r.awards)?r.awards:[r.awards]; a.filter(Boolean).forEach(x=>found.push({title:x,body:(r.userName||'Driver')+' earned this award.',meta:'Driver Award'}));}); rows=found;} if(!rows.length){rows=[{title:'First Delivery',body:'Award drivers for their first completed ELD load.',meta:'Achievement'},{title:'Million Mile Club',body:'Celebrate drivers who reach major mileage milestones.',meta:'Achievement'},{title:'Clean Inspection',body:'Recognize safe driving and inspection history.',meta:'Safety'}];} rows.slice(0,12).forEach(a=>grid.appendChild(card(a.title||a.name||'Award',a.body||a.description||'Company achievement.',a.meta||'Award')));}
 function renderRoster(roster){currentRoster=roster;const body=document.getElementById('rosterBody');body.innerHTML=''; if(!roster.length){body.innerHTML='<tr><td colspan="6">No roster members found yet.</td></tr>';return;} roster.forEach(m=>{const tr=document.createElement('tr');tr.tabIndex=0;tr.innerHTML='<td><strong>'+esc(m.userName||m.username||m.driverName||m.name||'Driver')+'</strong></td><td>'+esc(m.role||'Driver')+'</td><td>'+esc(m.currentTruck||m.truck||m.assignedTruck||'Unassigned')+'</td><td>'+formatMiles(num(m.totalMileage||m.totalMiles||m.mileage))+'</td><td><span class="badge">'+esc(m.status||m.dutyStatus||'Offline')+'</span></td><td>'+esc(Array.isArray(m.awards)?(m.awards.join(', ')||'None'):(m.awards||'None'))+'</td>';tr.ondblclick=()=>openProfile(m);tr.onkeydown=e=>{if(e.key==='Enter')openProfile(m);};body.appendChild(tr);});}
 document.getElementById('rosterSearch').oninput=function(){const q=this.value.trim().toLowerCase();renderRoster(q?currentRoster.filter(m=>JSON.stringify(m).toLowerCase().includes(q)):currentRoster);};
 function forceCloseProfile(){profileModal.hidden=true;profileModal.style.display='none';document.body.style.overflow='';} function openProfile(m){document.getElementById('profileTitle').textContent=m.userName||m.username||m.driverName||m.name||'Driver';const awards=Array.isArray(m.awards)?(m.awards.join(', ')||'None'):(m.awards||'None');document.getElementById('profileContent').innerHTML=profileItem('Role',m.role||'Driver')+profileItem('Current Truck',m.currentTruck||m.truck||m.assignedTruck||'Unassigned')+profileItem('Total Mileage',formatMiles(num(m.totalMileage||m.totalMiles||m.mileage)))+profileItem('Status',m.status||m.dutyStatus||'Offline')+profileItem('Awards',awards)+profileItem('Last Known Location',m.location||m.cityState||'Unknown')+profileItem('Driver Score',m.driverScore||m.score||'N/A')+profileItem('Joined',m.joined||m.joinedAt||'N/A');profileModal.hidden=false;profileModal.style.display='grid';document.body.style.overflow='hidden';}
