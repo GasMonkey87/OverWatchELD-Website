@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login | OverWatch ELD</title>
   <meta name="description" content="Sign in to OverWatch ELD with email/password or Discord to access your VTC portal.">
-  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="../assets/styles.css?v=vtc-selector-v1">
 </head>
 <body>
   <header class="header">
@@ -28,39 +28,24 @@
       <div class="panel login-panel">
         <div class="kicker">Member Login</div>
         <h1>Sign in to OverWatch ELD</h1>
-        <p class="lead">Use your email/password or Discord account to open your registered VTC portal.</p>
-
+        <p class="lead">Use your email/password or Discord account, then choose which VTC portal to open.</p>
         <div id="loginMessage" class="notice" hidden></div>
-
         <form id="emailLoginForm" class="form login-form">
-          <label>
-            Email
-            <input id="email" class="input" type="email" name="email" autocomplete="email" required placeholder="driver@example.com">
-          </label>
-          <label>
-            Password
-            <input id="password" class="input" type="password" name="password" autocomplete="current-password" required placeholder="Password">
-          </label>
+          <label>Email<input id="email" class="input" type="email" name="email" autocomplete="email" required placeholder="driver@example.com"></label>
+          <label>Password<input id="password" class="input" type="password" name="password" autocomplete="current-password" required placeholder="Password"></label>
           <button id="emailLoginBtn" class="btn" type="submit">Login with Email</button>
         </form>
-
         <div class="login-divider"><span>or</span></div>
-
         <button id="discordLoginBtn" class="btn discord-btn" type="button">Login with Discord</button>
-
-        <div class="login-links">
-          <a href="../portal/">Back to Portal</a>
-          <button id="logoutBtn" class="link-button" type="button">Clear saved login</button>
-        </div>
+        <div class="login-links"><a href="../portal/">Back to Portal</a><button id="logoutBtn" class="link-button" type="button">Clear saved login</button></div>
       </div>
-
       <div class="panel login-info-panel">
         <h3>What happens after login?</h3>
         <div class="status-row"><span><span class="dot"></span>Auth Required</span><strong>Protected</strong></div>
-        <div class="status-row"><span>Portal Access</span><strong>VTC Linked</strong></div>
+        <div class="status-row"><span>VTC Selector</span><strong>Enabled</strong></div>
         <div class="status-row"><span>Roster</span><strong>Members Only</strong></div>
         <div class="status-row"><span>Admin About Editor</span><strong>Owner/Admin</strong></div>
-        <p>After login, OverWatch stores your session token locally in this browser and redirects you to the portal page requested by the ELD or website.</p>
+        <p>After login, OverWatch opens the VTC selector. Discord users can choose from detected VTC servers. Email users can choose from available public registered VTCs.</p>
       </div>
     </section>
   </main>
@@ -72,16 +57,15 @@
   const page = document.querySelector('.login-page');
   const apiBase = page.dataset.apiBase || 'https://api.overwatcheld.com';
   const params = new URLSearchParams(window.location.search);
-  const returnUrl = params.get('returnUrl') || '../portal/';
+  const selectorUrl = '../select-vtc/';
   const messageBox = document.getElementById('loginMessage');
-
   const tokenFromUrl = params.get('token') || params.get('session') || params.get('access_token');
   const guildIdFromUrl = params.get('guildId') || params.get('vtcId');
   const errorFromUrl = params.get('error');
 
   if (tokenFromUrl) {
     saveSession(tokenFromUrl, guildIdFromUrl || '');
-    redirectToReturnUrl();
+    redirectToSelector();
     return;
   }
 
@@ -92,26 +76,15 @@
     const btn = document.getElementById('emailLoginBtn');
     btn.disabled = true;
     btn.textContent = 'Logging in...';
-
     try {
-      const payload = {
-        email: document.getElementById('email').value.trim(),
-        password: document.getElementById('password').value
-      };
-
-      const res = await fetch(apiBase + '/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
+      const payload = { email: document.getElementById('email').value.trim(), password: document.getElementById('password').value };
+      const res = await fetch(apiBase + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Invalid email or password.');
       const data = await res.json();
       const token = data.token || data.sessionToken || data.access_token || data.accessToken;
       if (!token) throw new Error('Login response did not include a session token.');
-
       saveSession(token, data.guildId || data.vtcId || '');
-      redirectToReturnUrl();
+      redirectToSelector();
     } catch (err) {
       showMessage(err.message || 'Login failed.', true);
     } finally {
@@ -121,8 +94,7 @@
   });
 
   document.getElementById('discordLoginBtn').addEventListener('click', function () {
-    const url = apiBase + '/api/auth/discord/login'
-      + '?returnUrl=' + encodeURIComponent(returnUrl);
+    const url = apiBase + '/api/auth/discord/login?returnUrl=' + encodeURIComponent('/select-vtc/');
     window.location.href = url;
   });
 
@@ -136,16 +108,8 @@
     localStorage.setItem('oweld_session_token', token);
     if (guildId) localStorage.setItem('oweld_guild_id', guildId);
   }
-
-  function redirectToReturnUrl() {
-    window.location.href = returnUrl;
-  }
-
-  function showMessage(text, isError) {
-    messageBox.hidden = false;
-    messageBox.textContent = text;
-    messageBox.classList.toggle('error-notice', !!isError);
-  }
+  function redirectToSelector() { window.location.href = selectorUrl; }
+  function showMessage(text, isError) { messageBox.hidden = false; messageBox.textContent = text; messageBox.classList.toggle('error-notice', !!isError); }
 })();
 </script>
 </body>
