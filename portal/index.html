@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VTC Portal | OverWatch ELD</title>
   <meta name="description" content="OverWatch ELD VTC portal with tabbed roster, fleet, jobs, garages, achievements, and management tools.">
-  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="../assets/styles.css?v=portal-tabs-v3">
 </head>
 <body>
 <header class="header"><nav class="nav"><a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a><div class="nav-links"><a href="../live-map/">Live Map</a><a href="../dashboard/">Dashboard</a><a href="../maintenance/">Maintenance</a><a href="../portal/">Portal</a><a href="../support/">Support</a></div></nav></header>
@@ -19,7 +19,7 @@
         <div class="trucky-company-card compact-company-card">
           <div id="vtcAvatar" class="trucky-avatar compact-avatar">OW</div>
           <div>
-            <div class="kicker">Virtual Trucking Company</div>
+            <div class="kicker">Virtual Trucking Company · Tabbed Portal v3</div>
             <h1 id="vtcName">Your VTC</h1>
             <p id="vtcDescription" class="lead">Welcome to your OverWatch ELD company portal.</p>
             <div class="actions trucky-actions compact-actions-row"><a class="btn" href="../live-map/">Live Map</a><a id="adminPortalBtn" class="btn secondary" href="admin/" hidden>Admin / Manage Portal</a><button id="logoutPortalBtn" class="btn secondary" type="button">Logout</button></div>
@@ -50,14 +50,7 @@
       </div>
 
       <div class="tab-shell panel">
-        <section id="overviewPanel" class="tab-panel active">
-          <div class="tab-panel-scroll portal-grid-main">
-            <div class="portal-about-card"><div class="section-title-row"><div><div class="kicker">Company Profile</div><h2>About the VTC</h2></div><button id="editAboutBtn" class="btn secondary small-btn" type="button" hidden>Edit About</button></div><p id="aboutText">Owners and admins can write a brief company description here.</p><div id="aboutEditor" class="portal-editor" hidden><textarea id="aboutTextarea" class="input" maxlength="1200" placeholder="Write a short VTC description..."></textarea><div class="actions compact-actions"><button id="saveAboutBtn" class="btn" type="button">Save</button><button id="cancelAboutBtn" class="btn secondary" type="button">Cancel</button></div></div></div>
-            <div><div class="kicker">Management Team</div><h2>Key Roles</h2><div id="rolesGrid" class="role-list"></div></div>
-            <div class="tab-wide"><div class="section-title-row"><div><div class="kicker">Company Board</div><h2>Latest Activity</h2></div></div><div id="latestGrid" class="portal-card-grid compact-card-grid"></div></div>
-          </div>
-        </section>
-
+        <section id="overviewPanel" class="tab-panel active"><div class="tab-panel-scroll portal-grid-main"><div class="portal-about-card"><div class="section-title-row"><div><div class="kicker">Company Profile</div><h2>About the VTC</h2></div><button id="editAboutBtn" class="btn secondary small-btn" type="button" hidden>Edit About</button></div><p id="aboutText">Owners and admins can write a brief company description here.</p><div id="aboutEditor" class="portal-editor" hidden><textarea id="aboutTextarea" class="input" maxlength="1200" placeholder="Write a short VTC description..."></textarea><div class="actions compact-actions"><button id="saveAboutBtn" class="btn" type="button">Save</button><button id="cancelAboutBtn" class="btn secondary" type="button">Cancel</button></div></div></div><div><div class="kicker">Management Team</div><h2>Key Roles</h2><div id="rolesGrid" class="role-list"></div></div><div class="tab-wide"><div class="section-title-row"><div><div class="kicker">Company Board</div><h2>Latest Activity</h2></div></div><div id="latestGrid" class="portal-card-grid compact-card-grid"></div></div></div></section>
         <section id="jobsPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Dispatch Board</div><h2>Recent Jobs & Loads</h2><p class="lead">Active/completed loads from ELD telemetry.</p></div></div><div id="jobsGrid" class="portal-card-grid compact-card-grid"></div></div></section>
         <section id="leaderboardPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Leaderboard</div><h2>Top Drivers</h2><p class="lead">Ranked by mileage, status, and performance data.</p></div></div><div id="leaderboardGrid" class="portal-card-grid compact-card-grid"></div></div></section>
         <section id="fleetPanel" class="tab-panel"><div class="tab-panel-scroll"><div class="section-title-row"><div><div class="kicker">Fleet</div><h2>Company Trucks</h2><p class="lead">Approved and assigned fleet trucks.</p></div></div><div id="fleetGrid" class="portal-card-grid compact-card-grid"></div></div></section>
