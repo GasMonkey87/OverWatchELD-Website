@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login | OverWatch ELD</title>
-  <meta name="description" content="Sign in to OverWatch ELD with email/password or Discord to access your VTC portal.">
-  <link rel="stylesheet" href="../assets/styles.css?v=vtc-selector-v1">
+  <meta name="description" content="Sign in or register for OverWatch ELD with email/password or Discord to access your VTC portal.">
+  <link rel="stylesheet" href="../assets/styles.css?v=register-login-v1">
 </head>
 <body>
   <header class="header">
@@ -27,25 +27,40 @@
     <section class="wrap login-wrap">
       <div class="panel login-panel">
         <div class="kicker">Member Login</div>
-        <h1>Sign in to OverWatch ELD</h1>
-        <p class="lead">Use your email/password or Discord account, then choose which VTC portal to open.</p>
+        <h1 id="loginTitle">Sign in to OverWatch ELD</h1>
+        <p class="lead" id="loginLead">Use your email/password or Discord account, then choose which VTC portal to open.</p>
         <div id="loginMessage" class="notice" hidden></div>
+
         <form id="emailLoginForm" class="form login-form">
           <label>Email<input id="email" class="input" type="email" name="email" autocomplete="email" required placeholder="driver@example.com"></label>
           <label>Password<input id="password" class="input" type="password" name="password" autocomplete="current-password" required placeholder="Password"></label>
           <button id="emailLoginBtn" class="btn" type="submit">Login with Email</button>
         </form>
+
+        <form id="registerForm" class="form login-form" hidden>
+          <label>Display Name<input id="registerDisplayName" class="input" type="text" autocomplete="name" required placeholder="Driver name"></label>
+          <label>Email<input id="registerEmail" class="input" type="email" autocomplete="email" required placeholder="driver@example.com"></label>
+          <label>Password<input id="registerPassword" class="input" type="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters"></label>
+          <label>Confirm Password<input id="registerPasswordConfirm" class="input" type="password" autocomplete="new-password" required minlength="8" placeholder="Re-enter password"></label>
+          <button id="registerBtn" class="btn" type="submit">Create Account</button>
+        </form>
+
         <div class="login-divider"><span>or</span></div>
         <button id="discordLoginBtn" class="btn discord-btn" type="button">Login with Discord</button>
-        <div class="login-links"><a href="../portal/">Back to Portal</a><button id="logoutBtn" class="link-button" type="button">Clear saved login</button></div>
+        <div class="login-links">
+          <button id="showRegisterBtn" class="link-button" type="button">Register Email/Password</button>
+          <button id="showLoginBtn" class="link-button" type="button" hidden>Back to Login</button>
+          <a href="../portal/">Back to Portal</a>
+          <button id="logoutBtn" class="link-button" type="button">Clear saved login</button>
+        </div>
       </div>
       <div class="panel login-info-panel">
         <h3>What happens after login?</h3>
         <div class="status-row"><span><span class="dot"></span>Auth Required</span><strong>Protected</strong></div>
         <div class="status-row"><span>VTC Selector</span><strong>Enabled</strong></div>
+        <div class="status-row"><span>Email Registration</span><strong>Enabled</strong></div>
         <div class="status-row"><span>Roster</span><strong>Members Only</strong></div>
-        <div class="status-row"><span>Admin About Editor</span><strong>Owner/Admin</strong></div>
-        <p>After login, OverWatch opens the VTC selector. Discord users can choose from detected VTC servers. Email users can choose from available public registered VTCs.</p>
+        <p>After login, OverWatch opens the VTC selector. Discord users can choose detected VTC servers. Email users can choose available public registered VTCs.</p>
       </div>
     </section>
   </main>
@@ -59,7 +74,7 @@
   const params = new URLSearchParams(window.location.search);
   const selectorUrl = '../select-vtc/';
   const messageBox = document.getElementById('loginMessage');
-  const tokenFromUrl = params.get('token') || params.get('session') || params.get('access_token');
+  const tokenFromUrl = params.get('token') || params.get('session');
   const guildIdFromUrl = params.get('guildId') || params.get('vtcId');
   const errorFromUrl = params.get('error');
 
@@ -71,6 +86,14 @@
 
   if (errorFromUrl) showMessage('Login failed: ' + errorFromUrl, true);
 
+  document.getElementById('showRegisterBtn').addEventListener('click', function () {
+    setMode('register');
+  });
+
+  document.getElementById('showLoginBtn').addEventListener('click', function () {
+    setMode('login');
+  });
+
   document.getElementById('emailLoginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const btn = document.getElementById('emailLoginBtn');
@@ -81,7 +104,7 @@
       const res = await fetch(apiBase + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Invalid email or password.');
       const data = await res.json();
-      const token = data.token || data.sessionToken || data.access_token || data.accessToken;
+      const token = data.token || data.sessionToken || data.accessToken;
       if (!token) throw new Error('Login response did not include a session token.');
       saveSession(token, data.guildId || data.vtcId || '');
       redirectToSelector();
@@ -90,6 +113,38 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Login with Email';
+    }
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('registerBtn');
+    const password = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('registerPasswordConfirm').value;
+    if (password !== confirm) {
+      showMessage('Passwords do not match.', true);
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+    try {
+      const payload = {
+        displayName: document.getElementById('registerDisplayName').value.trim(),
+        email: document.getElementById('registerEmail').value.trim(),
+        password
+      };
+      const res = await fetch(apiBase + '/api/account/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || 'Registration failed.');
+      showMessage('Account created. You can now log in with your email and password.', false);
+      document.getElementById('email').value = payload.email;
+      document.getElementById('password').value = '';
+      setMode('login');
+    } catch (err) {
+      showMessage(err.message || 'Registration failed.', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
     }
   });
 
@@ -103,6 +158,16 @@
     localStorage.removeItem('oweld_guild_id');
     showMessage('Saved login cleared on this browser.', false);
   });
+
+  function setMode(mode) {
+    const isRegister = mode === 'register';
+    document.getElementById('emailLoginForm').hidden = isRegister;
+    document.getElementById('registerForm').hidden = !isRegister;
+    document.getElementById('showRegisterBtn').hidden = isRegister;
+    document.getElementById('showLoginBtn').hidden = !isRegister;
+    document.getElementById('loginTitle').textContent = isRegister ? 'Create an OverWatch ELD Account' : 'Sign in to OverWatch ELD';
+    document.getElementById('loginLead').textContent = isRegister ? 'Register with email/password, then log in and select your VTC portal.' : 'Use your email/password or Discord account, then choose which VTC portal to open.';
+  }
 
   function saveSession(token, guildId) {
     localStorage.setItem('oweld_session_token', token);
