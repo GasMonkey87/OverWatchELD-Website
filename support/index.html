@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Support | OverWatch ELD</title>
 <meta name="description" content="Get help with OverWatch ELD installation, ATS telemetry, Discord bot setup, dispatch, BOL documents, maintenance, VTC portals, and support requests.">
-<link rel="stylesheet" href="../assets/styles.css?v=support-center-v1">
+<link rel="stylesheet" href="../assets/styles.css?v=support-center-v2">
 <style>
 .support-hero{background:radial-gradient(circle at 18% 18%,rgba(0,174,255,.20),transparent 34%),linear-gradient(135deg,#07101a,#121f31 58%,#07101a);border-bottom:1px solid var(--border)}
 .support-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);gap:22px;align-items:start}
@@ -39,7 +39,6 @@
 </div>
 </div>
 </section>
-
 <section class="wrap">
 <div class="info-strip">
 <div><span>Support Topics</span><strong>Install</strong></div>
@@ -48,7 +47,6 @@
 <div><span>Documents</span><strong>BOL / Logs</strong></div>
 </div>
 </section>
-
 <section class="section-alt">
 <div class="wrap">
 <div class="section-title-row"><div><div class="kicker">Quick Help</div><h2>Common areas users need help with</h2></div></div>
@@ -62,7 +60,6 @@
 </div>
 </div>
 </section>
-
 <section class="wrap support-layout">
 <div>
 <div class="kicker">Proper Use</div>
@@ -75,14 +72,13 @@
 <div class="setup-step"><b>5</b><div><h3>Report problems with details</h3><p>When something breaks, include your ELD version, ATS version, what you clicked, screenshots, Discord server/VTC name, and any error text.</p></div></div>
 </div>
 </div>
-
 <div id="support-form" class="support-card">
 <div class="kicker">Contact Support</div>
 <h2>Submit a support request</h2>
-<p>Fill out the form below. It is configured to send support requests by email.</p>
+<p>Fill out the form below. It is configured to send support requests to <strong>support@overwatcheld.com</strong>.</p>
 <div id="successBox" class="success-box">Your email app or support form was opened. Send the message to finish submitting your request.</div>
 <div id="errorBox" class="error-box">Something went wrong opening the email. Use the direct email link below.</div>
-<form id="contactForm" class="support-form" action="https://formsubmit.co/robertpeters8705@icloud.com" method="POST">
+<form id="contactForm" class="support-form" action="https://formsubmit.co/support@overwatcheld.com" method="POST">
 <input type="hidden" name="_subject" value="OverWatch ELD Support Request">
 <input type="hidden" name="_captcha" value="false">
 <input type="hidden" name="_template" value="table">
@@ -94,12 +90,11 @@
 <label>ELD Version<input class="input" name="eld_version" id="eldVersion" placeholder="Example: v2.2.2"></label>
 <label>Discord Server / VTC Name<input class="input" name="vtc" id="vtc" placeholder="Your VTC or Discord server name"></label>
 <label>Describe the issue<textarea class="input" name="message" id="message" required placeholder="Tell us what happened, what you expected, and the steps to reproduce it."></textarea></label>
-<div class="actions"><button class="btn" type="submit">Send Support Email</button><a id="mailtoLink" class="btn secondary" href="mailto:robertpeters8705@icloud.com?subject=OverWatch%20ELD%20Support%20Request">Open Email Manually</a></div>
+<div class="actions"><button class="btn" type="submit">Send Support Email</button><a id="mailtoLink" class="btn secondary" href="mailto:support@overwatcheld.com?subject=OverWatch%20ELD%20Support%20Request">Open Email Manually</a></div>
 <p class="form-note">First FormSubmit email may require inbox confirmation before live delivery. The manual email button is included as a fallback.</p>
 </form>
 </div>
 </section>
-
 <section id="faq" class="section-alt">
 <div class="wrap">
 <div class="section-title-row"><div><div class="kicker">FAQ</div><h2>Frequently asked questions</h2></div></div>
@@ -115,7 +110,7 @@
 <details><summary>What should I include in a bug report?</summary><ul><li>ELD version and ATS version.</li><li>What screen or button you used.</li><li>Exact error message or screenshot.</li><li>Whether ATS was running and loaded into your profile.</li><li>Your Discord server/VTC name if the issue involves bot or portal features.</li></ul></details>
 <details><summary>Can I use OverWatch ELD without a VTC?</summary><p>Yes. You can use driver tools individually. VTC features such as Discord alerts, dispatch, fleet analytics, applications, and shared dashboards work best after the bot and server link are configured.</p></details>
 <details><summary>Where do I get the latest version?</summary><p>Use the Downloads page. It checks GitHub releases and points to the newest release asset when available.</p></details>
-<details><summary>What if I cannot submit the support form?</summary><p>Use the “Open Email Manually” button or email support directly from your email app. Include the same details requested in the form.</p></details>
+<details><summary>What if I cannot submit the support form?</summary><p>Use the “Open Email Manually” button or email support directly at support@overwatcheld.com. Include the same details requested in the form.</p></details>
 </div>
 </div>
 </section>
@@ -123,6 +118,7 @@
 <footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
 <script>
 (function(){
+  const supportEmail='support@overwatcheld.com';
   const form=document.getElementById('contactForm');
   const mailto=document.getElementById('mailtoLink');
   const success=document.getElementById('successBox');
@@ -138,7 +134,7 @@
     const vtc=document.getElementById('vtc').value||'';
     const message=document.getElementById('message').value||'';
     const body=['Name: '+name,'Email: '+email,'Topic: '+topic,'Priority: '+priority,'ELD Version: '+version,'VTC / Discord Server: '+vtc,'','Issue Details:',message].join('\n');
-    mailto.href='mailto:robertpeters8705@icloud.com?subject='+encodeURIComponent('OverWatch ELD Support Request - '+topic)+'&body='+encodeURIComponent(body);
+    mailto.href='mailto:'+supportEmail+'?subject='+encodeURIComponent('OverWatch ELD Support Request - '+topic)+'&body='+encodeURIComponent(body);
   }
   form.addEventListener('input',buildMailto);
   mailto.addEventListener('click',function(){buildMailto();success.style.display='block';error.style.display='none';});
