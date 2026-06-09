@@ -1,1 +1,204 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VTC Portal | OverWatch ELD</title><link rel="stylesheet" href="../assets/styles.css?v=portal-real-fleet-jobs-v2"><style>.profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.profile-item{border:1px solid var(--border);border-radius:14px;padding:12px;background:#0b121a}.profile-item span{display:block;color:#92a0b2;font-size:12px;text-transform:uppercase;font-weight:900}.profile-item strong{display:block;color:#fff;margin-top:4px}.profile-actions{border-top:1px solid var(--border);margin-top:18px;padding-top:16px}.tab-panel{display:none}.tab-panel.active{display:block}@media(max-width:760px){.profile-grid{grid-template-columns:1fr}}</style></head><body><header class="header"><nav class="nav"><a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a><div class="nav-links"><a href="../live-map/">Live Map</a><a href="../vtc/">Find a VTC</a><a href="../portal/">Portal</a></div></nav></header><main id="portalApp" class="portal-shell trucky-portal" data-api-base="https://api.overwatcheld.com"><section id="loading" class="wrap"><div class="panel"><div class="kicker">VTC Portal</div><h1>Loading portal...</h1></div></section><section id="content" hidden><section class="hero"><div class="wrap hero-grid"><div><div class="kicker">Virtual Trucking Company</div><h1 id="vtcName">VTC Portal</h1><p id="vtcDescription" class="lead"></p><div class="actions"><a id="liveMapBtn" class="btn" href="../live-map/">Live Map</a><a id="loadBoardBtn" class="btn secondary" href="../load-board/">Load Board</a><a id="opsBtn" class="btn secondary" href="../operations/">Operations</a><a id="adminBtn" class="btn secondary" href="admin/" hidden>Admin / Manage Portal</a><button id="logoutBtn" class="btn secondary">Logout</button></div></div><div class="panel"><h3>Stats</h3><div class="status-row"><span>Members</span><strong id="members">0</strong></div><div class="status-row"><span>Live Drivers</span><strong id="liveDrivers">0</strong></div><div class="status-row"><span>Fleet</span><strong id="fleetCount">0</strong></div><div class="status-row"><span>Loads</span><strong id="loadsCount">0</strong></div></div></div></section><section class="wrap"><div class="trucky-tabs tabbar"><button class="tab-btn active" data-tab="overview">Overview</button><button class="tab-btn" data-tab="roster">Roster</button><button class="tab-btn" data-tab="fleet">Fleet</button><button class="tab-btn" data-tab="jobs">Jobs</button><button class="tab-btn" data-tab="awards">Awards</button></div><div class="panel"><section id="overview" class="tab-panel active"><h2>About</h2><p id="aboutText"></p><h2>Key Roles</h2><div id="rolesGrid" class="role-list"></div></section><section id="roster" class="tab-panel"><div class="section-title-row"><h2>Roster</h2><input id="rosterSearch" class="input roster-search" placeholder="Search..."></div><div class="table-wrap roster-scroll-wrap"><table class="table"><thead><tr><th>Driver</th><th>Role</th><th>Truck</th><th>Miles</th><th>Status</th></tr></thead><tbody id="rosterBody"></tbody></table></div></section><section id="fleet" class="tab-panel"><h2>Fleet</h2><div id="fleetGrid" class="portal-card-grid"></div></section><section id="jobs" class="tab-panel"><h2>Jobs</h2><div id="jobsGrid" class="portal-card-grid"></div></section><section id="awards" class="tab-panel"><h2>Awards</h2><div id="awardsGrid" class="portal-card-grid"></div></section></div></section></section><div id="profileModal" class="modal-backdrop" hidden style="display:none"><div class="modal-card"><button id="closeProfile" class="modal-close">×</button><div id="profileContent"></div></div></div></main><footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span></div></footer><script>(function(){const app=document.getElementById('portalApp'),base=app.dataset.apiBase||'https://api.overwatcheld.com',token=localStorage.getItem('oweld_session_token')||'',storedGuild=localStorage.getItem('oweld_guild_id')||'';let gid=new URLSearchParams(location.search).get('guildId')||storedGuild,roster=[],fleet=[],jobs=[],awards=[],canManage=false;if(!token){location.href='../login/?returnUrl=/portal/'}document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab-btn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===b.dataset.tab))});document.getElementById('logoutBtn').onclick=()=>{localStorage.removeItem('oweld_session_token');location.href='../login/?returnUrl=/portal/'};document.getElementById('closeProfile').onclick=closeProfile;document.getElementById('profileModal').onclick=e=>{if(e.target.id==='profileModal')closeProfile()};async function get(p){const r=await fetch(base+p,{cache:'no-store',headers:{Authorization:'Bearer '+token,'X-OverWatch-Session':token}});if(r.status===401){localStorage.removeItem('oweld_session_token');location.href='../login/?returnUrl=/portal/'}if(!r.ok)throw new Error('Request failed '+r.status);return await r.json()}async function safeGet(p){try{return await get(p)}catch{return null}}async function load(){try{const s=gid?'?guildId='+encodeURIComponent(gid):'';let d;try{d=await get('/api/portal/me-email'+s)}catch{d=await get('/api/portal/me'+s)}gid=d.guildId||gid;localStorage.setItem('oweld_guild_id',gid);const v=d.vtc||{},st=d.stats||{};canManage=v.canEditPortal===true;roster=d.roster||[];fleet=d.fleet||d.trucks||[];jobs=d.jobs||d.loads||[];awards=d.awards||d.achievements||[];const fleetApi=await safeGet('/api/vtc/portal/fleet?guildId='+encodeURIComponent(gid));if(fleetApi&&Array.isArray(fleetApi.data)&&fleetApi.data.length)fleet=fleetApi.data;const loadsApi=await safeGet('/api/vtc/portal/loads?guildId='+encodeURIComponent(gid));if(loadsApi&&Array.isArray(loadsApi.loads)&&loadsApi.loads.length)jobs=loadsApi.loads;text('vtcName',v.name||'VTC Portal');text('vtcDescription',v.description||'');text('aboutText',v.about||v.description||'');text('members',st.members??roster.length);text('liveDrivers',st.liveDrivers??st.onlineMembers??0);text('fleetCount',fleet.length||st.fleetTrucks||0);text('loadsCount',jobs.length||st.loadsTotal||0);id('liveMapBtn').href='../live-map/?guildId='+encodeURIComponent(gid);id('loadBoardBtn').href='../load-board/?guildId='+encodeURIComponent(gid);id('opsBtn').href='../operations/?guildId='+encodeURIComponent(gid);id('adminBtn').href='admin/?guildId='+encodeURIComponent(gid);id('adminBtn').hidden=!canManage;renderRoles(d.roles||[]);renderRoster(roster);renderFleet(fleet);renderJobs(jobs);cards('awardsGrid',awards,'No awards yet');id('loading').hidden=true;id('content').hidden=false}catch(e){id('loading').innerHTML='<div class="panel"><h1>Portal error</h1><p>'+esc(e.message)+'</p></div>'}}function renderRoles(rows){id('rolesGrid').innerHTML=(rows.length?rows:[{role:'Owner',userName:'Not assigned'}]).map(x=>'<div class="role-row"><span>'+esc(x.role||'Role')+'</span><strong>'+esc(x.userName||'Not assigned')+'</strong></div>').join('')}function renderRoster(rows){const q=(id('rosterSearch')?.value||'').toLowerCase();const list=q?rows.filter(x=>JSON.stringify(x).toLowerCase().includes(q)):rows;id('rosterBody').innerHTML=list.map((m,i)=>'<tr data-i="'+i+'"><td><strong>'+esc(m.userName||m.name||'Driver')+'</strong></td><td>'+esc(m.role||'Driver')+'</td><td>'+esc(m.currentTruck||m.assignedTruck||'Unassigned')+'</td><td>'+esc(m.totalMileage||m.mileage||0)+'</td><td>'+esc(m.status||'Offline')+'</td></tr>').join('')||'<tr><td colspan="5">No roster members found.</td></tr>';document.querySelectorAll('#rosterBody tr[data-i]').forEach(tr=>tr.ondblclick=()=>openProfile(list[Number(tr.dataset.i)]))}id('rosterSearch').oninput=()=>renderRoster(roster);function renderFleet(rows){id('fleetGrid').innerHTML=(rows||[]).map(x=>'<div class="card"><div class="kicker">'+esc(x.status||x.Status||'Truck')+'</div><h3>'+esc((x.truckNumber||x.TruckNumber?'#'+(x.truckNumber||x.TruckNumber)+' ':'')+(x.name||x.Name||x.model||x.Model||'Truck'))+'</h3><p>Driver: '+esc(x.driver||x.Driver||'Unassigned')+'<br>Plate: '+esc(x.plate||x.Plate||'N/A')+'<br>Location: '+esc(x.location||x.Location||'Unknown')+'<br>Odometer: '+esc(x.odometer||x.Odometer||'N/A')+'</p></div>').join('')||'<div class="card"><h3>No fleet trucks yet</h3><p>Fleet trucks appear after the ELD or admin portal syncs them.</p></div>'}function renderJobs(rows){id('jobsGrid').innerHTML=(rows||[]).map(x=>'<div class="card"><div class="kicker">'+esc(x.status||x.Status||'Load')+'</div><h3>'+esc(x.loadNumber||x.LoadNumber||x.title||x.Title||'Load')+'</h3><p>Cargo: '+esc(x.cargo||x.Cargo||'N/A')+'<br>Route: '+esc(x.origin||x.Origin||'')+' → '+esc(x.destination||x.Destination||'')+'<br>Driver: '+esc(x.assignedDriver||x.AssignedDriver||x.driver||'Unassigned')+'<br>Truck: '+esc(x.assignedTruck||x.AssignedTruck||x.truck||'N/A')+'<br>Revenue: '+esc(x.revenue||x.Revenue||'N/A')+'</p></div>').join('')||'<div class="card"><h3>No jobs synced yet</h3><p>Jobs appear after ELD load sync or manager-created load board entries.</p></div>'}function cards(el,rows,empty){id(el).innerHTML=(rows||[]).map(x=>'<div class="card"><div class="kicker">'+esc(x.meta||x.status||'Info')+'</div><h3>'+esc(x.title||x.name||x.cityName||x.currentTruck||x.loadNumber||'Item')+'</h3><p>'+esc(x.body||x.description||x.driver||x.location||'')+'</p></div>').join('')||'<div class="card"><h3>'+empty+'</h3></div>'}function openProfile(m){const admin='admin/?guildId='+encodeURIComponent(gid)+'&driver='+encodeURIComponent(m.discordUserId||m.userName||m.name||'');id('profileContent').innerHTML='<div class="kicker">Driver Profile</div><h2>'+esc(m.userName||m.name||'Driver')+'</h2><div class="profile-grid">'+item('Role',m.role||'Driver')+item('Truck',m.currentTruck||m.assignedTruck||'Unassigned')+item('Mileage',m.totalMileage||m.mileage||0)+item('Status',m.status||'Offline')+item('Score',m.driverScore||m.score||'N/A')+item('Location',m.location||'Unknown')+'</div>'+(canManage?'<div class="profile-actions"><div class="kicker">Management Actions</div><p class="profile-note">These actions open the real management page.</p><div class="actions"><a class="btn secondary" href="'+admin+'#roster">Assign Truck</a><a class="btn secondary" href="'+admin+'#awards">Assign Award</a><a class="btn secondary" href="'+admin+'#roster">Promote or Demote</a><a class="btn secondary" href="'+admin+'#audit">View History</a></div></div>':'');id('profileModal').hidden=false;id('profileModal').style.display='grid'}function closeProfile(){id('profileModal').hidden=true;id('profileModal').style.display='none'}function item(k,v){return '<div class="profile-item"><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>'}function id(x){return document.getElementById(x)}function text(x,v){id(x).textContent=String(v??'')}function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}load()})();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VTC Portal | OverWatch ELD</title>
+  <link rel="stylesheet" href="../assets/styles.css?v=portal-dispatch-access-v1">
+  <style>
+    .profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .profile-item{border:1px solid var(--border);border-radius:14px;padding:12px;background:#0b121a}
+    .profile-item span{display:block;color:#92a0b2;font-size:12px;text-transform:uppercase;font-weight:900}
+    .profile-item strong{display:block;color:#fff;margin-top:4px}
+    .profile-actions{border-top:1px solid var(--border);margin-top:18px;padding-top:16px}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    .access-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:#92a0b2;font-weight:900;font-size:12px;text-transform:uppercase}
+    @media(max-width:760px){.profile-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header class="header">
+  <nav class="nav">
+    <a class="brand" href="../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a>
+    <div class="nav-links">
+      <a href="../live-map/">Live Map</a>
+      <a href="../vtc/">Find a VTC</a>
+      <a href="../portal/">Portal</a>
+      <a id="navDispatchBtn" href="../dispatch/" hidden>Dispatch</a>
+    </div>
+  </nav>
+</header>
+
+<main id="portalApp" class="portal-shell trucky-portal" data-api-base="https://api.overwatcheld.com">
+  <section id="loading" class="wrap">
+    <div class="panel"><div class="kicker">VTC Portal</div><h1>Loading portal...</h1></div>
+  </section>
+
+  <section id="content" hidden>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="kicker">Virtual Trucking Company</div>
+          <h1 id="vtcName">VTC Portal</h1>
+          <p id="vtcDescription" class="lead"></p>
+          <div class="actions">
+            <a id="liveMapBtn" class="btn" href="../live-map/">Live Map</a>
+            <a id="loadBoardBtn" class="btn secondary" href="../load-board/">Load Board</a>
+            <a id="dispatchBtn" class="btn secondary" href="../dispatch/" hidden>Dispatch Center</a>
+            <a id="opsBtn" class="btn secondary" href="../operations/">Operations</a>
+            <a id="adminBtn" class="btn secondary" href="admin/" hidden>Admin / Manage Portal</a>
+            <button id="logoutBtn" class="btn secondary">Logout</button>
+          </div>
+          <p id="dispatchAccessText" class="access-pill" hidden>Dispatch access enabled</p>
+        </div>
+        <div class="panel">
+          <h3>Stats</h3>
+          <div class="status-row"><span>Members</span><strong id="members">0</strong></div>
+          <div class="status-row"><span>Live Drivers</span><strong id="liveDrivers">0</strong></div>
+          <div class="status-row"><span>Fleet</span><strong id="fleetCount">0</strong></div>
+          <div class="status-row"><span>Loads</span><strong id="loadsCount">0</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="trucky-tabs tabbar">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="roster">Roster</button>
+        <button class="tab-btn" data-tab="fleet">Fleet</button>
+        <button class="tab-btn" data-tab="jobs">Jobs</button>
+        <button class="tab-btn" data-tab="awards">Awards</button>
+      </div>
+      <div class="panel">
+        <section id="overview" class="tab-panel active"><h2>About</h2><p id="aboutText"></p><h2>Key Roles</h2><div id="rolesGrid" class="role-list"></div></section>
+        <section id="roster" class="tab-panel"><div class="section-title-row"><h2>Roster</h2><input id="rosterSearch" class="input roster-search" placeholder="Search..."></div><div class="table-wrap roster-scroll-wrap"><table class="table"><thead><tr><th>Driver</th><th>Role</th><th>Truck</th><th>Miles</th><th>Status</th></tr></thead><tbody id="rosterBody"></tbody></table></div></section>
+        <section id="fleet" class="tab-panel"><h2>Fleet</h2><div id="fleetGrid" class="portal-card-grid"></div></section>
+        <section id="jobs" class="tab-panel"><h2>Jobs</h2><div id="jobsGrid" class="portal-card-grid"></div></section>
+        <section id="awards" class="tab-panel"><h2>Awards</h2><div id="awardsGrid" class="portal-card-grid"></div></section>
+      </div>
+    </section>
+  </section>
+
+  <div id="profileModal" class="modal-backdrop" hidden style="display:none"><div class="modal-card"><button id="closeProfile" class="modal-close">×</button><div id="profileContent"></div></div></div>
+</main>
+
+<footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span></div></footer>
+
+<script>
+(function(){
+  const app=document.getElementById('portalApp');
+  const base=app.dataset.apiBase||'https://api.overwatcheld.com';
+  const token=localStorage.getItem('oweld_session_token')||'';
+  const storedGuild=localStorage.getItem('oweld_guild_id')||'';
+  const allowedDispatchRoles=['admin','administrator','owner','manager','dispatcher'];
+  let gid=new URLSearchParams(location.search).get('guildId')||storedGuild;
+  let roster=[],fleet=[],jobs=[],awards=[],canManage=false,canDispatch=false;
+
+  if(!token){location.href='../login/?returnUrl=/portal/'}
+
+  document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tab-btn').forEach(x=>x.classList.toggle('active',x===b));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===b.dataset.tab));
+  });
+
+  id('logoutBtn').onclick=()=>{localStorage.removeItem('oweld_session_token');location.href='../login/?returnUrl=/portal/'};
+  id('closeProfile').onclick=closeProfile;
+  id('profileModal').onclick=e=>{if(e.target.id==='profileModal')closeProfile()};
+  id('rosterSearch').oninput=()=>renderRoster(roster);
+
+  async function get(p){
+    const r=await fetch(base+p,{cache:'no-store',headers:{Authorization:'Bearer '+token,'X-OverWatch-Session':token}});
+    if(r.status===401){localStorage.removeItem('oweld_session_token');location.href='../login/?returnUrl=/portal/'}
+    if(!r.ok)throw new Error('Request failed '+r.status);
+    return await r.json();
+  }
+  async function safeGet(p){try{return await get(p)}catch{return null}}
+
+  async function load(){
+    try{
+      const s=gid?'?guildId='+encodeURIComponent(gid):'';
+      let d;
+      try{d=await get('/api/portal/me-email'+s)}catch{d=await get('/api/portal/me'+s)}
+      gid=d.guildId||gid;
+      localStorage.setItem('oweld_guild_id',gid);
+
+      const v=d.vtc||{},st=d.stats||{};
+      roster=d.roster||[];
+      fleet=d.fleet||d.trucks||[];
+      jobs=d.jobs||d.loads||[];
+      awards=d.awards||d.achievements||[];
+      canManage=v.canEditPortal===true||roleAllowed(readRoles(d),['admin','administrator','owner','manager']);
+      canDispatch=canManage||roleAllowed(readRoles(d),allowedDispatchRoles);
+
+      const fleetApi=await safeGet('/api/vtc/portal/fleet?guildId='+encodeURIComponent(gid));
+      if(fleetApi&&Array.isArray(fleetApi.data)&&fleetApi.data.length)fleet=fleetApi.data;
+      const loadsApi=await safeGet('/api/vtc/portal/loads?guildId='+encodeURIComponent(gid));
+      if(loadsApi&&Array.isArray(loadsApi.loads)&&loadsApi.loads.length)jobs=loadsApi.loads;
+
+      text('vtcName',v.name||'VTC Portal');
+      text('vtcDescription',v.description||'');
+      text('aboutText',v.about||v.description||'');
+      text('members',st.members??roster.length);
+      text('liveDrivers',st.liveDrivers??st.onlineMembers??0);
+      text('fleetCount',fleet.length||st.fleetTrucks||0);
+      text('loadsCount',jobs.length||st.loadsTotal||0);
+
+      setGuildLink('liveMapBtn','../live-map/');
+      setGuildLink('loadBoardBtn','../load-board/');
+      setGuildLink('opsBtn','../operations/');
+      setGuildLink('adminBtn','admin/');
+      setGuildLink('dispatchBtn','../dispatch/');
+      setGuildLink('navDispatchBtn','../dispatch/');
+
+      id('adminBtn').hidden=!canManage;
+      id('dispatchBtn').hidden=!canDispatch;
+      id('navDispatchBtn').hidden=!canDispatch;
+      id('dispatchAccessText').hidden=!canDispatch;
+
+      renderRoles(d.roles||[]);
+      renderRoster(roster);
+      renderFleet(fleet);
+      renderJobs(jobs);
+      cards('awardsGrid',awards,'No awards yet');
+      id('loading').hidden=true;
+      id('content').hidden=false;
+    }catch(e){
+      id('loading').innerHTML='<div class="panel"><h1>Portal error</h1><p>'+esc(e.message)+'</p></div>';
+    }
+  }
+
+  function readRoles(d){
+    const out=[];
+    [d.role,d.userRole,d.memberRole,d.portalRole,d.permission,d.permissions,d.discordRole,d.discordRoles,d.roles,d.vtc?.role,d.vtc?.userRole].forEach(v=>pushRole(out,v));
+    const meId=String(d.discordUserId||d.userId||d.id||d.email||'').toLowerCase();
+    (d.roster||[]).forEach(m=>{
+      const ids=[m.discordUserId,m.userId,m.id,m.email,m.userName,m.name].map(x=>String(x||'').toLowerCase());
+      if(meId&&ids.includes(meId))pushRole(out,m.role||m.Role);
+    });
+    return out;
+  }
+  function pushRole(out,v){
+    if(!v)return;
+    if(Array.isArray(v)){v.forEach(x=>pushRole(out,x));return;}
+    if(typeof v==='object'){pushRole(out,v.role||v.name||v.title||v.value);return;}
+    out.push(String(v).trim().toLowerCase());
+  }
+  function roleAllowed(roles,allowed){return roles.some(r=>allowed.includes(String(r).toLowerCase()))}
+  function setGuildLink(el,path){id(el).href=path+(gid?'?guildId='+encodeURIComponent(gid):'')}
+
+  function renderRoles(rows){id('rolesGrid').innerHTML=(rows.length?rows:[{role:'Owner',userName:'Not assigned'}]).map(x=>'<div class="role-row"><span>'+esc(x.role||'Role')+'</span><strong>'+esc(x.userName||'Not assigned')+'</strong></div>').join('')}
+  function renderRoster(rows){const q=(id('rosterSearch')?.value||'').toLowerCase();const list=q?rows.filter(x=>JSON.stringify(x).toLowerCase().includes(q)):rows;id('rosterBody').innerHTML=list.map((m,i)=>'<tr data-i="'+i+'"><td><strong>'+esc(m.userName||m.name||'Driver')+'</strong></td><td>'+esc(m.role||'Driver')+'</td><td>'+esc(m.currentTruck||m.assignedTruck||'Unassigned')+'</td><td>'+esc(m.totalMileage||m.mileage||0)+'</td><td>'+esc(m.status||'Offline')+'</td></tr>').join('')||'<tr><td colspan="5">No roster members found.</td></tr>';document.querySelectorAll('#rosterBody tr[data-i]').forEach(tr=>tr.ondblclick=()=>openProfile(list[Number(tr.dataset.i)]))}
+  function renderFleet(rows){id('fleetGrid').innerHTML=(rows||[]).map(x=>'<div class="card"><div class="kicker">'+esc(x.status||x.Status||'Truck')+'</div><h3>'+esc((x.truckNumber||x.TruckNumber?'#'+(x.truckNumber||x.TruckNumber)+' ':'')+(x.name||x.Name||x.model||x.Model||'Truck'))+'</h3><p>Driver: '+esc(x.driver||x.Driver||'Unassigned')+'<br>Plate: '+esc(x.plate||x.Plate||'N/A')+'<br>Location: '+esc(x.location||x.Location||'Unknown')+'<br>Odometer: '+esc(x.odometer||x.Odometer||'N/A')+'</p></div>').join('')||'<div class="card"><h3>No fleet trucks yet</h3><p>Fleet trucks appear after the ELD or admin portal syncs them.</p></div>'}
+  function renderJobs(rows){id('jobsGrid').innerHTML=(rows||[]).map(x=>'<div class="card"><div class="kicker">'+esc(x.status||x.Status||'Load')+'</div><h3>'+esc(x.loadNumber||x.LoadNumber||x.title||x.Title||'Load')+'</h3><p>Cargo: '+esc(x.cargo||x.Cargo||'N/A')+'<br>Route: '+esc(x.origin||x.Origin||'')+' → '+esc(x.destination||x.Destination||'')+'<br>Driver: '+esc(x.assignedDriver||x.AssignedDriver||x.driver||'Unassigned')+'<br>Truck: '+esc(x.assignedTruck||x.AssignedTruck||x.truck||'N/A')+'<br>Revenue: '+esc(x.revenue||x.Revenue||'N/A')+'</p></div>').join('')||'<div class="card"><h3>No jobs synced yet</h3><p>Jobs appear after ELD load sync or manager-created load board entries.</p></div>'}
+  function cards(el,rows,empty){id(el).innerHTML=(rows||[]).map(x=>'<div class="card"><div class="kicker">'+esc(x.meta||x.status||'Info')+'</div><h3>'+esc(x.title||x.name||x.cityName||x.currentTruck||x.loadNumber||'Item')+'</h3><p>'+esc(x.body||x.description||x.driver||x.location||'')+'</p></div>').join('')||'<div class="card"><h3>'+empty+'</h3></div>'}
+  function openProfile(m){const admin='admin/?guildId='+encodeURIComponent(gid)+'&driver='+encodeURIComponent(m.discordUserId||m.userName||m.name||'');id('profileContent').innerHTML='<div class="kicker">Driver Profile</div><h2>'+esc(m.userName||m.name||'Driver')+'</h2><div class="profile-grid">'+item('Role',m.role||'Driver')+item('Truck',m.currentTruck||m.assignedTruck||'Unassigned')+item('Mileage',m.totalMileage||m.mileage||0)+item('Status',m.status||'Offline')+item('Score',m.driverScore||m.score||'N/A')+item('Location',m.location||'Unknown')+'</div>'+(canManage?'<div class="profile-actions"><div class="kicker">Management Actions</div><p class="profile-note">These actions open the real management page.</p><div class="actions"><a class="btn secondary" href="'+admin+'#roster">Assign Truck</a><a class="btn secondary" href="'+admin+'#awards">Assign Award</a><a class="btn secondary" href="'+admin+'#roster">Promote or Demote</a><a class="btn secondary" href="'+admin+'#audit">View History</a></div></div>':'');id('profileModal').hidden=false;id('profileModal').style.display='grid'}
+  function closeProfile(){id('profileModal').hidden=true;id('profileModal').style.display='none'}
+  function item(k,v){return '<div class="profile-item"><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>'}
+  function id(x){return document.getElementById(x)}
+  function text(x,v){id(x).textContent=String(v??'')}
+  function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+  load();
+})();
+</script>
+</body>
+</html>
