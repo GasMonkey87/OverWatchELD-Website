@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal Management | OverWatch ELD</title>
+  <meta name="description" content="OverWatch ELD VTC portal management for owners, admins, and managers.">
+  <link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="header">
+  <nav class="nav">
+    <a class="brand" href="../../"><span class="brand-mark">OW</span><span>OverWatch ELD</span></a>
+    <div class="nav-links">
+      <a href="../">Portal</a>
+      <a href="../../live-map/">Live Map</a>
+      <a href="../../maintenance/">Maintenance</a>
+      <a href="../../support/">Support</a>
+    </div>
+  </nav>
+</header>
+
+<main id="adminApp" class="portal-shell" data-api-base="https://api.overwatcheld.com">
+  <section id="adminLoading" class="wrap">
+    <div class="panel">
+      <div class="kicker">Management</div>
+      <h1>Loading VTC management...</h1>
+      <p class="lead">Only Discord Owner, Admin, or Manager roles can access this page.</p>
+    </div>
+  </section>
+
+  <section id="adminDenied" class="wrap" hidden>
+    <div class="panel">
+      <div class="kicker">Access Denied</div>
+      <h1>Management access required.</h1>
+      <p class="lead">Your Discord role must be Owner, Admin, or Manager for this VTC.</p>
+      <div class="actions"><a class="btn" href="../">Back to Portal</a></div>
+    </div>
+  </section>
+
+  <section id="adminContent" hidden>
+    <section class="hero portal-hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="kicker">VTC Management</div>
+          <h1 id="adminVtcName">VTC Portal Admin</h1>
+          <p class="lead">Edit what members see on the portal landing page.</p>
+          <div class="actions">
+            <a class="btn" href="../">View Portal</a>
+            <button id="savePortalBtn" class="btn secondary" type="button">Save VTC Info</button>
+          </div>
+          <div id="saveMessage" class="notice" hidden></div>
+        </div>
+        <div class="panel">
+          <h3>Access</h3>
+          <div class="status-row"><span>Your Role</span><strong id="adminRole">Manager</strong></div>
+          <div class="status-row"><span>Members</span><strong id="adminMembers">0</strong></div>
+          <div class="status-row"><span>Fleet Trucks</span><strong id="adminTrucks">0</strong></div>
+          <div class="status-row"><span>Garages</span><strong id="adminGarages">0</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap portal-grid-main">
+      <div class="panel">
+        <div class="kicker">Public Portal Info</div>
+        <h2>VTC Details</h2>
+        <div class="form">
+          <label>VTC Name<input id="companyName" class="input" type="text" placeholder="VTC name"></label>
+          <label>Welcome / Subtitle<input id="welcomeText" class="input" type="text" placeholder="Welcome message"></label>
+          <label>About Description<textarea id="companyInfo" class="input" maxlength="1200" placeholder="Write a public description for your VTC..."></textarea></label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="kicker">Portal Setup</div>
+        <h2>Current Data</h2>
+        <div class="status-row"><span>Key Roles</span><strong id="roleCount">0</strong></div>
+        <div class="status-row"><span>Roster Rows</span><strong id="rosterCount">0</strong></div>
+        <div class="status-row"><span>Latest Info</span><strong id="latestCount">0</strong></div>
+        <p>Fleet trucks, garages, dispatch channels, and approvals will be managed here as the backend endpoints are added.</p>
+      </div>
+    </section>
+
+    <section class="section-alt">
+      <div class="wrap">
+        <div class="section-title-row">
+          <div><div class="kicker">Staff</div><h2>Key Roles</h2></div>
+        </div>
+        <div id="adminRolesGrid" class="portal-card-grid"></div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="section-title-row">
+        <div><div class="kicker">Roster Preview</div><h2>Drivers</h2></div>
+      </div>
+      <div class="table-wrap roster-scroll-wrap">
+        <table class="table portal-table">
+          <thead><tr><th>Driver</th><th>Role</th><th>Truck</th><th>Status</th><th>Mileage</th></tr></thead>
+          <tbody id="adminRosterBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+
+<footer class="footer"><div class="wrap"><span>OverWatch ELD © 2026 Gas Monkey Creations</span><span>The ELD you can count on.</span></div></footer>
+
+<script>
+(function () {
+  const app = document.getElementById('adminApp');
+  const apiBase = app.dataset.apiBase || 'https://api.overwatcheld.com';
+  const token = localStorage.getItem('oweld_session_token') || '';
+  const guildId = localStorage.getItem('oweld_guild_id') || '';
+  const loading = document.getElementById('adminLoading');
+  const content = document.getElementById('adminContent');
+  const denied = document.getElementById('adminDenied');
+  let currentGuildId = guildId;
+
+  if (!token) {
+    window.location.replace('../../login/?returnUrl=' + encodeURIComponent('/portal/admin/'));
+    return;
+  }
+
+  async function apiGet(path) {
+    const res = await fetch(apiBase + path, {
+      cache: 'no-store',
+      headers: { 'Authorization': 'Bearer ' + token, 'X-OverWatch-Session': token }
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('oweld_session_token');
+      window.location.replace('../../login/?returnUrl=' + encodeURIComponent('/portal/admin/'));
+      throw new Error('Not authenticated');
+    }
+    if (!res.ok) throw new Error('Request failed: ' + res.status);
+    return await res.json();
+  }
+
+  async function apiPost(path, body) {
+    const res = await fetch(apiBase + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'X-OverWatch-Session': token },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('Save failed: ' + res.status);
+    return await res.json().catch(() => ({ ok: true }));
+  }
+
+  async function loadAdmin() {
+    try {
+      const suffix = guildId ? '?guildId=' + encodeURIComponent(guildId) : '';
+      const data = await apiGet('/api/portal/me' + suffix);
+      const vtc = data.vtc || {};
+      if (!vtc.canEditPortal) {
+        loading.hidden = true;
+        denied.hidden = false;
+        return;
+      }
+
+      currentGuildId = data.guildId || guildId;
+      if (currentGuildId) localStorage.setItem('oweld_guild_id', currentGuildId);
+
+      document.getElementById('adminVtcName').textContent = (vtc.name || 'VTC') + ' Management';
+      document.getElementById('adminRole').textContent = vtc.myRole || 'Manager';
+      document.getElementById('companyName').value = vtc.name || '';
+      document.getElementById('welcomeText').value = vtc.description || '';
+      document.getElementById('companyInfo').value = vtc.about || '';
+
+      const roster = data.roster || [];
+      const roles = data.roles || [];
+      const fleet = data.fleet || data.trucks || [];
+      const garages = data.garages || [];
+      const latest = data.latest || data.latestInfo || [];
+      const stats = data.stats || {};
+
+      document.getElementById('adminMembers').textContent = String(stats.members ?? roster.length);
+      document.getElementById('adminTrucks').textContent = String(stats.fleetTrucks ?? fleet.length);
+      document.getElementById('adminGarages').textContent = String(stats.garages ?? garages.length);
+      document.getElementById('roleCount').textContent = String(roles.length);
+      document.getElementById('rosterCount').textContent = String(roster.length);
+      document.getElementById('latestCount').textContent = String(latest.length);
+
+      renderRoles(roles);
+      renderRoster(roster);
+
+      loading.hidden = true;
+      content.hidden = false;
+    } catch (err) {
+      loading.innerHTML = '<div class="panel"><div class="kicker">Error</div><h1>Could not load management.</h1><p class="lead">' + escapeHtml(err.message || 'Unknown error') + '</p><div class="actions"><a class="btn" href="../">Back to Portal</a></div></div>';
+    }
+  }
+
+  document.getElementById('savePortalBtn').addEventListener('click', async function () {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    try {
+      const about = document.getElementById('companyInfo').value.trim();
+      await apiPost('/api/portal/about', { guildId: currentGuildId, about });
+      showSave('Saved VTC about text. Name/subtitle save will activate when backend portal settings endpoint is added.', false);
+    } catch (err) {
+      showSave(err.message || 'Save failed.', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save VTC Info';
+    }
+  });
+
+  function renderRoles(roles) {
+    const grid = document.getElementById('adminRolesGrid');
+    grid.innerHTML = '';
+    (roles.length ? roles : [{ role: 'Owner', userName: 'Not assigned' }, { role: 'Manager', userName: 'Not assigned' }, { role: 'Dispatch', userName: 'Not assigned' }]).forEach(r => {
+      grid.appendChild(card(r.role || 'Role', r.userName || 'Not assigned', 'Discord Role'));
+    });
+  }
+
+  function renderRoster(roster) {
+    const body = document.getElementById('adminRosterBody');
+    body.innerHTML = '';
+    if (!roster.length) {
+      body.innerHTML = '<tr><td colspan="5">No roster members available yet.</td></tr>';
+      return;
+    }
+    roster.slice(0, 300).forEach(m => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><strong>' + escapeHtml(m.userName || m.name || 'Driver') + '</strong></td><td>' + escapeHtml(m.role || 'Driver') + '</td><td>' + escapeHtml(m.currentTruck || 'Unassigned') + '</td><td>' + escapeHtml(m.status || 'Offline') + '</td><td>' + escapeHtml(String(m.totalMileage || '0')) + '</td>';
+      body.appendChild(tr);
+    });
+  }
+
+  function card(title, body, meta) {
+    const div = document.createElement('div');
+    div.className = 'card portal-info-card';
+    div.innerHTML = '<div class="kicker">' + escapeHtml(meta || 'Info') + '</div><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(body) + '</p>';
+    return div;
+  }
+
+  function showSave(text, isError) {
+    const box = document.getElementById('saveMessage');
+    box.hidden = false;
+    box.textContent = text;
+    box.classList.toggle('error-notice', !!isError);
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\'': '&#39;', '"': '&quot;' }[c]));
+  }
+
+  loadAdmin();
+})();
+</script>
+</body>
+</html>
