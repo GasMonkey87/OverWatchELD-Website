@@ -25,4 +25,7 @@ http://overwatcheld.com/* https://overwatcheld.com/:splat 301!
 /support/          /support/index.html       200
 /profile           /profile/index.html       200
 /profile/          /profile/index.html       200
+/log-exports /log-exports.html 200
+/logs /log-exports.html 200
+
 /*                 /404.html                 404
